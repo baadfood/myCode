@@ -47,6 +47,7 @@ GameState * GameManager::getGameState()
 
 bool GameManager::progressFrame()
 {
+  d->state->prevFrameTime = d->state->currentFrameTime;
   d->state->currentFrameTime = SDL_GetTicks();
   d->state->ticksAdvanced = d->state->currentFrameTime - d->state->prevFrameTime;
 
@@ -56,8 +57,7 @@ bool GameManager::progressFrame()
   {
     Uint32 ticks = SDL_GetTicks();
     (*iter)->advance(d->state);
-//    std::cout << (*iter)->getName() << " ticks: " << SDL_GetTicks() - ticks << std::endl;
+    std::cout << (*iter)->getName() << " ticks: " << SDL_GetTicks() - ticks << std::endl;
   }
-
   return true;
 }

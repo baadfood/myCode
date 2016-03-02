@@ -1,3 +1,5 @@
+/*
+
 #pragma once
 #include "Shape.h"
 class Box :
@@ -29,3 +31,4 @@ protected:
   glm::u64vec2 m_halfSize;
 };
 
+*/

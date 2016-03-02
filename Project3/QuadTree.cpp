@@ -159,6 +159,7 @@ QuadTree * QuadTree::addObject(Object * p_object)
 
       AABB parentAABB(m_boundary);
       parentAABB.m_halfSize *= 2;
+      assert(m_boundary.m_halfSize.x != 0);
 
       switch(direction)
       {
@@ -248,9 +249,9 @@ bool QuadTree::addObject_Internal(Object * p_object)
 
 void QuadTree::subdivide()
 {
-  glm::i64vec2 offset(m_boundary.m_halfSize / 2);
+  glm::i64vec2 offset(static_cast<glm::i64vec2>(m_boundary.m_halfSize / static_cast<glm::u64>(2)));
   AABB childAabb;
-  childAabb.setSize(m_boundary.m_halfSize / 2);
+  childAabb.setSize(m_boundary.m_halfSize / static_cast<glm::u64>(2));
 
   if(m_ne == nullptr)
   {

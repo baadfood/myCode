@@ -4,6 +4,10 @@
 #include "SpatialTree.h"
 
 #include "utils.h"
+#include "Physics/Shape.h"
+#include "Physics/Contact.h"
+
+#include <cassert>
 
 Object::Object(std::string const & p_name, glm::i64vec2 p_pos, glm::u64vec2 p_halfSize, glm::i32vec2 p_speed, glm::float32 p_rot, glm::float32 p_rotSpeed, glm::i64vec2 p_origin) :
 m_pos(p_pos),
@@ -14,7 +18,9 @@ m_rotSpeed(p_rotSpeed),
 m_typeId(0),
 m_treeNode(nullptr),
 m_name(p_name),
-m_treeNodeIndex(0)
+m_treeNodeIndex(0),
+m_rotAccel(0),
+m_accel(0,0)
 {
 }
 
@@ -22,13 +28,27 @@ Object::~Object()
 {
 }
 
-void Object::getConnectedObjects(std::vector<Object*> p_connectedObjects)
+void Object::getConnectedObjects(std::vector<Object*> & p_connectedObjects)
 {
   p_connectedObjects.reserve(p_connectedObjects.size() + m_contacts.size());
   for (Contact * contact : m_contacts)
   {
-    p_connectedObjects.push_back(contact->fixtures[1].object);
-    contact->fixtures[1].object->getConnectedObjects(p_connectedObjects);
+    auto iter = p_connectedObjects.begin();
+    for(;
+        iter != p_connectedObjects.end();
+        iter++)
+    {
+      if(*iter == contact->fixtures[1].object)
+      {
+        break;
+      }
+    }
+    
+    if(iter == p_connectedObjects.end())
+    {
+      p_connectedObjects.push_back(contact->fixtures[1].object);
+      contact->fixtures[1].object->getConnectedObjects(p_connectedObjects);
+    }
   }
 }
 
@@ -100,14 +120,11 @@ std::shared_ptr<Asset> Object::getAsset()
 void Object::moveBy(glm::i64vec2 const & p_pos)
 {
   m_pos += p_pos;
-  updateAabb();
-//  updateTree();
 }
 
 void Object::moveTo(glm::i64vec2 const & p_pos)
 {
   m_pos = p_pos;
-  updateAabb();
 }
 
 glm::int64 Object::getXPos() const
@@ -128,7 +145,6 @@ glm::i64vec2 const & Object::getPos() const
 void Object::setHalfSize(glm::u64vec2 p_size)
 {
   m_halfSize = p_size;
-  updateAabb();
 }
 
 glm::u64vec2 const & Object::getHalfSize() const
@@ -151,15 +167,33 @@ glm::i64vec2 Object::getOffset(glm::i64vec2 const & p_origin) const
   return m_pos - p_origin;
 }
 
+void Object::addAccel(glm::i64vec2 p_accel)
+{
+  m_accel += p_accel;
+}
+
+void Object::addRotAccel(glm::float32 p_rotAccel)
+{
+  m_rotAccel += p_rotAccel;
+}
+
+const glm::float32& Object::getRotSpeed() const
+{
+  return m_rotSpeed;
+}
+
+const glm::i64vec2& Object::getSpeed() const
+{
+  return m_speed;
+}
+
 void Object::setXPos(glm::int64 p_x)
 {
   m_pos.x = p_x;
-  updateAabb();
 }
 void Object::setYPos(glm::int64 p_y)
 {
   m_pos.y = p_y;
-  updateAabb();
 }
 
 void Object::updateTransform(glm::i64vec2 const & p_origin, glm::i64 p_worldPerPixel)
@@ -168,8 +202,6 @@ void Object::updateTransform(glm::i64vec2 const & p_origin, glm::i64 p_worldPerP
   m_transform.getRot() = m_rot;
   m_transform.getScale() = glm::vec2(double(m_halfSize.x)/double(p_worldPerPixel), double(m_halfSize.y)/double(p_worldPerPixel));
   m_model = m_transform.getModel();
-  m_physicsTransform.pos = m_pos;
-  m_physicsTransform.rot = glm::fvec2(sin(m_rot), cos(m_rot));
 }
 
 glm::mat4 const & Object::getTransform() const
@@ -202,16 +234,32 @@ void Object::handleLostFocus(SDL_Event const * p_event)
 void Object::advance(glm::u64 p_nanos)
 {
   double seconds = double(p_nanos) / 1e9;
+  
+  m_rot += m_rotSpeed * seconds;
+  m_rot += m_rotAccel * pow(seconds,2) / 2;
+  m_rotSpeed += m_rotAccel * seconds;
+
+  m_accel.x /= 2;
+  m_accel.y /= 2;
+  
   m_pos.x += m_speed.x * seconds;
   m_pos.y += m_speed.y * seconds;
-  m_pos.x += m_accel.x * seconds / 2;
-  m_pos.y += m_accel.y * seconds / 2;
+  m_pos.x += m_accel.x * pow(seconds,2) / 2;
+  m_pos.y += m_accel.y * pow(seconds,2) / 2;
   m_speed.x += m_accel.x * seconds;
   m_speed.y += m_accel.y * seconds;
 
-  m_rot += m_rotSpeed * seconds;
-  m_rot += m_rotAccel * seconds / 2;
-  m_rotSpeed += m_rotAccel * seconds;
+
+  m_physicsTransform.pos = m_pos;
+  m_physicsTransform.rot = glm::fvec2(sin(m_rot), cos(m_rot));
+
+  for(auto iter = m_fixtures.begin();
+      iter != m_fixtures.end();
+      iter++)
+  {
+    Fixture * fixture = (*iter);
+    fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
+  }
 }
 
 std::vector<Fixture*> const & Object::getFixtures() const
@@ -262,3 +310,107 @@ void Object::removeInputHandler(std::shared_ptr<UserInputHandler> p_handler)
 {
   mika::removeOne(m_inputHandlers, p_handler);
 }
+
+void Object::setAccel(glm::i64vec2 p_accel)
+{
+  m_accel = p_accel;
+}
+
+void Object::setRotAccel(glm::float32 p_rotAccel)
+{
+  m_rotAccel = p_rotAccel;
+}
+
+void Object::setRotSpeed(glm::float32 p_rotSpeed)
+{
+  m_rotSpeed = p_rotSpeed;
+}
+
+void Object::setSpeed(glm::i64vec2 p_speed)
+{
+  m_speed = p_speed;
+}
+
+glm::f64 Object::getInertia() const
+{
+  return m_inertia;
+}
+
+glm::f64 Object::getInvInertia() const
+{
+  return m_invInertia;
+}
+
+glm::f64 Object::getInvMass() const
+{
+  return m_invMass;
+}
+
+glm::f64 Object::getMass() const
+{
+  return m_mass;
+}
+
+void Object::updateMass()
+{
+  m_mass = 0.0f;
+  m_invMass = 0.0f;
+  m_inertia = 0.0f;
+  m_invInertia = 0.0f;
+  
+  glm::i64vec2 oldCenter = m_centerOfMass;
+  
+  // Accumulate mass over all fixtures.
+  m_centerOfMass.x = 0;
+  m_centerOfMass.y = 0;
+  
+  for(Fixture * fix : m_fixtures)
+  {
+    if(fix->density == 0)
+    {
+      continue;
+    }
+    
+    MassData mass;
+    fix->shape->calculateMassData(mass, fix->density);
+    
+    m_mass += mass.mass;
+    m_centerOfMass += mass.center * mass.mass;
+    m_inertia += mass.inertia;
+  }
+
+  // Compute center of mass.
+  if (m_mass > 0.0f)
+  {
+    m_invMass = 1.0f / m_mass;
+    m_centerOfMass *= m_invMass;
+  }
+  else
+  {
+    // Force all dynamic bodies to have a positive mass.
+    m_mass = 1.0f;
+    m_invMass = 1.0f;
+  }
+
+  if (m_inertia > 0.0f)
+  {
+    // Center the inertia about the center of mass.
+    m_inertia -= m_mass * glm::dot(glm::f64vec2(m_centerOfMass), glm::f64vec2(m_centerOfMass));
+    m_invInertia = 1.0f / m_inertia;
+  }
+  else
+  {
+    m_inertia = 0.0f;
+    m_invInertia = 0.0f;
+  }
+
+  // Update center of mass velocity.
+  m_speed += mika::crossS(m_rotSpeed, m_centerOfMass - oldCenter);
+}
+
+void Object::applyImpulse(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector)
+{
+  m_speed += glm::i64vec2(m_invMass * p_impulse);
+  m_rotSpeed += m_invInertia * mika::cross(p_contactVector, p_impulse);
+}
+

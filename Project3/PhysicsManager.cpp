@@ -7,6 +7,9 @@
 
 #include "ShapeCollisionDetector.h"
 #include "Object.h"
+#include "Physics/Shape.h"
+#include "Physics/Collision/CircleToCircleCollision.h"
+#include "QuadTree.h"
 
 #include <atomic>
 
@@ -30,6 +33,7 @@ PhysicsManager::PhysicsManager():
 d(new Private())
 {
   d->name = "PhysicsManager";
+  d->collisionDetector.registerCollisionHandler(Shape::eCircle, Shape::eCircle, new CircleToCircleCollision);
 }
 
 PhysicsManager::~PhysicsManager()
@@ -45,14 +49,15 @@ void PhysicsManager::moveObjects()
 {
   int size = d->objectsToUpdate->size();
   int blocksize = size / 800;
+  if(blocksize == 0)
+  {
+    blocksize = size;
+  }
   int currentIndex;
   int lastIndex;
   int limit = 0;
-  std::vector<Object *> collisions;
-  collisions.reserve(200);
   while (limit != size)
   {
-    unsigned int ticks = SDL_GetTicks();
     currentIndex =  d->currentIndex.fetch_add(blocksize);
     limit = std::min(size, currentIndex + blocksize);
     for (;
@@ -60,6 +65,9 @@ void PhysicsManager::moveObjects()
       currentIndex++)
     {
       d->objectsToUpdate->at(currentIndex)->advance(d->nanosToAdvance);
+      d->objectsToUpdate->at(currentIndex)->updateAabb();
+      d->objectsToUpdate->at(currentIndex)->updateMass();
+      d->objectsToUpdate->at(currentIndex)->clearContacts();
     }
   }
 }
@@ -73,6 +81,10 @@ PhysicsManager::ContactsData * PhysicsManager::getContacts()
 {
   int size = d->objectsToUpdate->size();
   int blocksize = size / 800;
+  if(blocksize == 0)
+  {
+    blocksize = size;
+  }
   int currentIndex;
   int lastIndex;
   int limit = 0;
@@ -93,7 +105,7 @@ PhysicsManager::ContactsData * PhysicsManager::getContacts()
       bool firstCollision = true;
       for (Object * obj : objectCollisions)
       {
-        if (obj < currentObject)
+        if (currentObject < obj)
         {
           if (checkCollision(currentObject, obj, retval->contacts))
           {
@@ -114,6 +126,10 @@ void PhysicsManager::correctPositions()
 {
   int size = d->objectsToUpdate->size();
   int blocksize = size / 800;
+  if(blocksize == 0)
+  {
+    blocksize = size;
+  }
   int currentIndex;
   int lastIndex;
   int limit = 0;
@@ -143,8 +159,49 @@ void PhysicsManager::correctPositions()
 
 namespace
 {
+  bool toiSort(Contact const * p_contact1, Contact const * p_contact2)
+  {
+    if(p_contact1->timeOfImpact < p_contact2->timeOfImpact)
+    {
+      return true;
+    }
+    return false;
+  }
+}
+
+void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
+{
+  std::vector<Contact *> contacts;
+  contacts.reserve(p_island.size() * 2);
+
+  for(Object * obj : p_island)
+  {
+    std::vector<Contact*> const & objContacts = obj->getContacts();
+    contacts.reserve(objContacts.size() + contacts.capacity());
+    for(Contact * contact : objContacts)
+    {
+      contacts.push_back(contact);
+    }
+  }
+  std::sort(contacts.begin(), contacts.end(), toiSort);
+  for(Contact * contact : contacts)
+  {
+    contact->applyImpulse();
+  }
+}
+
+namespace
+{
   bool sortPrimaries(std::vector<Object*> const & p_first, std::vector<Object*> const & p_second)
   {
+    if(p_second.empty())
+    {
+      return true;
+    }
+    if(p_first.empty())
+    {
+      return false;
+    }
     return p_first.front() < p_second.front();
   }
 }
@@ -164,6 +221,14 @@ void PhysicsManager::advance(GameState * p_state)
   }
   moveObjects();
   getThreadPool().waitAndDoTasks();
+  d->currentIndex.store(0);
+  
+  for(auto iter = d->objectsToUpdate->begin();
+      iter != d->objectsToUpdate->end();
+      iter++)
+  {
+    (*iter)->updateTree();
+  }
 
   std::vector<std::future<ContactsData *>> tasks;
 
@@ -174,17 +239,18 @@ void PhysicsManager::advance(GameState * p_state)
   {
     tasks.emplace_back(getThreadPool().push(std::bind(&PhysicsManager::getContacts, this)));
   }
-  std::vector<std::vector<Object *>> primaries;
+  std::vector<std::vector<Object *> > primaries;
   std::vector<Contact *> contacts;
   ContactsData * contactData = nullptr;
   while (tasks.empty() == false)
   {
     for (auto iter = tasks.begin();
-    iter != tasks.end();
-      iter++)
+      iter != tasks.end();
+      )
     {
-      if(iter->_Is_ready()
-      && iter->valid())
+      if(iter->valid()
+      && iter->wait_for(std::chrono::seconds(0)) == std::future_status::ready
+      )
       {
         contactData = iter->get();
         contacts.resize(contacts.size() + contactData->contacts.size());
@@ -196,6 +262,10 @@ void PhysicsManager::advance(GameState * p_state)
         delete contactData;
         std::swap(tasks.back(), *iter);
         tasks.pop_back();
+      }
+      else
+      {
+	iter++;
       }
     }
   }
@@ -209,7 +279,7 @@ void PhysicsManager::advance(GameState * p_state)
     size += group.size();
   }
 
-  primariesJoined.resize(size);
+  primariesJoined.reserve(size);
 
   for (std::vector<Object*> group : primaries)
   {
@@ -221,7 +291,7 @@ void PhysicsManager::advance(GameState * p_state)
   while(primariesJoined.empty() == false)
   {
     std::vector<Object*> island;
-    island.push_back(primaries.front().front());
+    island.push_back(primariesJoined.front());
     island.front()->getConnectedObjects(island);
 
     std::swap(primariesJoined.front(), primariesJoined.back());
@@ -236,6 +306,15 @@ void PhysicsManager::advance(GameState * p_state)
   }
 
   std::cout << "Such islands: " << islands.size() << std::endl;
+  
+  for(int island = 0;
+      island < islands.size();
+      island++)
+  {
+    getThreadPool().push(std::bind(&PhysicsManager::processIsland, this, islands.at(island)));
+  }
+  getThreadPool().waitAndDoTasks();
+
 
   // is it possible to do multithreaded collision responses?
 }

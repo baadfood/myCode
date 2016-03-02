@@ -3,7 +3,7 @@
 
 #include <atomic>
 #include <boost/lockfree/queue.hpp>
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 class Object;
 
 class ManifoldPoint
@@ -40,10 +40,11 @@ public:
   }
 
   glm::i64vec2 localPoint;
-  glm::f32vec2 localNormal;
+  glm::f64vec2 localNormal;
   EManifoldType type;
   ManifoldPoint contactPoints[2];
   unsigned short pointCount;
+  glm::f64 penetration;
 };
 
 

@@ -11,7 +11,7 @@ class Collision
 public:
   virtual ~Collision() {}
 
-  virtual bool Collide(Contact* manifold,
+  virtual bool Collide(Contact*& manifold,
     Fixture const & p_fix1, Transform2d const & p_tr1,
     Fixture const & p_fix2, Transform2d const & p_tr2) = 0;
 };

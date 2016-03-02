@@ -25,7 +25,7 @@ RenderManager::RenderManager() :
 {
   d->name = "RenderManager";
   d->renderers[0] = std::unique_ptr<ObjectRenderer>(new GenericRenderer());
-  d->renderers[0]->setShader(new Shader("res\\objectShader2"));
+  d->renderers[0]->setShader(new Shader("./res/objectShader2"));
 }
 
 RenderManager::~RenderManager()

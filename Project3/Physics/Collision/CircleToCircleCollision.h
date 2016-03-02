@@ -4,37 +4,48 @@
 #include "Collision.h"
 #include "../Manifold.h"
 #include "../Transform.h"
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
+#include <complex>
 #include "../Shapes/CircleShape.h"
+#include <Object.h>
 
 class CircleToCircleCollision: public Collision
 {
 public:
-  
-  virtual bool Collide(Manifold * p_manifold,
-    CircleShape * p_circle1, Transform2d const & p_tf1,
-    CircleShape * p_circle2, Transform2d const & p_tf2)
+
+  virtual bool Collide(Contact *& p_contact,
+    Fixture const & p_fix1, Transform2d const & p_tf1,
+    Fixture const & p_fix2, Transform2d const & p_tf2)
   {
+    CircleShape * circle1 = static_cast<CircleShape *>(p_fix1.shape);
+    CircleShape * circle2 = static_cast<CircleShape *>(p_fix2.shape);
 
-    glm::i64vec2 circle1Pos = p_tf1.multiply(p_circle1->pos);
-    glm::i64vec2 circle2Pos = p_tf2.multiply(p_circle2->pos);
+    glm::i64vec2 circle1Pos = p_tf1.multiply(circle1->pos);
+    glm::i64vec2 circle2Pos = p_tf2.multiply(circle2->pos);
 
-    glm::i64vec2 delta = circle2Pos - circle1Pos;
-    glm::u64 distance = glm::dot(delta, delta);
-    glm::u64 limit = p_circle1->radius + p_circle2->radius;
+    glm::f64vec2 delta = static_cast<glm::f64vec2>(circle2Pos - circle1Pos);
+    glm::f64 distance = std::sqrt(glm::dot(delta, delta));
+    glm::f64 limit = circle1->radius + circle2->radius;
     if (distance > limit)
     {
       return false;
     }
 
-    p_manifold = Manifold::newManifold();
+    p_contact = new Contact;
+    glm::f64vec2 normal = static_cast<glm::f64vec2>(circle2Pos - circle1Pos) / distance;
 
-    p_manifold->pointCount = 0;
-    p_manifold->type = Manifold::eCircles;
-    p_manifold->localNormal;
-    p_manifold->pointCount = 2;
-    p_manifold->contactPoints[0].contactPoint = p_circle1->pos;
-    p_manifold->contactPoints[1].contactPoint = p_circle2->pos;
+    p_contact->contactFriction = std::sqrt(p_fix1.friction * p_fix2.friction);
+    p_contact->contactRestitution = std::sqrt(p_fix1.restitution * p_fix2.restitution);
+    p_contact->manifold.pointCount = 0;
+    p_contact->manifold.type = Manifold::eCircles;
+    p_contact->manifold.localNormal = normal;
+    p_contact->manifold.penetration = limit - distance;
+    p_contact->manifold.pointCount = 1;
+    p_contact->manifold.contactPoints[0].contactPoint = p_fix1.object->getPos() + glm::i64vec2(normal * (distance / 2));
+    p_contact->relativeVelocity = (glm::f64vec2)p_fix1.object->getSpeed() + ((glm::f64vec2(circle1->pos) + normal * (glm::f64)circle1->radius) * (glm::f64)p_fix1.object->getRotSpeed())
+                                -((glm::f64vec2)p_fix2.object->getSpeed() + ((glm::f64vec2(circle2->pos) - normal * (glm::f64)circle2->radius) * (glm::f64)p_fix2.object->getRotSpeed()));
+    double speed = glm::length(p_contact->relativeVelocity);
+    p_contact->timeOfImpact = p_contact->manifold.penetration / speed;
     return true;
   }
 

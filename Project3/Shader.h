@@ -16,8 +16,8 @@ public:
   enum EAttributes
   {
     ePosition,
-    eNormal,
     eTexCoord,
+    eNormal,
     eModel
   };
 

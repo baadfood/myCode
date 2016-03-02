@@ -1,7 +1,7 @@
 #include <iostream>
-#include <gl/glew.h>
-#include <GL/GL.h>
-#include "display.h"
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include "Display.h"
 #include "Shader.h"
 #include "Mesh.h"
 #include "Vertex.h"
@@ -19,7 +19,8 @@
 #include "QuadTree.h"
 #include "MtQuadTree.h"
 #include "InputHandlers/CameraRightClickMoveHandler.inl"
-#include "Physics\Collision\Collision.h"
+#include "Physics/Collision/Collision.h"
+#include "Physics/Shapes/CircleShape.h"
 
 FILE _iob[] = { *stdin, *stdout, *stderr };
 #include <SDL.h>
@@ -93,18 +94,36 @@ std::vector<Collision *> collisionChecks()
 void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset, SpatialTree * tree)
 {
   Object * object = new Object();
+  
+  double power = 4;
 
   double rand = fRand(0, 2 * 3.1415926);
+
   float cosCounter = cosf(rand);
   float sinCounter = sinf(rand);
 
-  object->setRot(rand);
-  object->setXPos(cosCounter * OBJTOWORLD);
-  object->setYPos(sinCounter * OBJTOWORLD);
+  object->setRot(-rand);
+  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size());
+  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size());
   object->updateTransform();
-  object->setHalfSize(glm::i64vec2(OBJTOWORLD, OBJTOWORLD));
+  object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
   object->setAsset(p_asset);
-
+  object->setRotSpeed(0);
+  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()), -sinCounter * OBJTOWORLD * std::sqrt(p_objects.size())));
+  
+  CircleShape * circleShape = new CircleShape;
+  circleShape->pos = glm::i64vec2(0, 0);
+  circleShape->radius = OBJTOWORLD;
+ 
+  Fixture * fixture = new Fixture;
+  fixture->density = 0.000001;
+  fixture->friction = 1;
+  fixture->restitution = 1;
+  fixture->object = object;
+  fixture->shape = circleShape;
+  
+  object->addFixture(fixture);
+  
   tree->addObject(object);
   p_objects.push_back(object);
 }
@@ -287,53 +306,14 @@ int main(int argc, char ** argv)
 
   std::vector<Vertex> vertices;
 
-  vertices.emplace_back(glm::vec3(-1, -1, -1), glm::vec2(1, 0), glm::vec3(0, 0, -1));
-  vertices.emplace_back(glm::vec3(-1, 1, -1), glm::vec2(0, 0), glm::vec3(0, 0, -1));
-  vertices.emplace_back(glm::vec3(1, 1, -1), glm::vec2(0, 1), glm::vec3(0, 0, -1));
-  vertices.emplace_back(glm::vec3(1, -1, -1), glm::vec2(1, 1), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(-1, 1, 0), glm::vec2(0, 0), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(-1, -1, 0), glm::vec2(0, 1), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(1, -1, 0), glm::vec2(1, 1), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(1, 1, 0), glm::vec2(1, 0), glm::vec3(0, 0, -1));
 
-  vertices.emplace_back(glm::vec3(-1, -1, 1), glm::vec2(1, 0), glm::vec3(0, 0, 1));
-  vertices.emplace_back(glm::vec3(-1, 1, 1), glm::vec2(0, 0), glm::vec3(0, 0, 1));
-  vertices.emplace_back(glm::vec3(1, 1, 1), glm::vec2(0, 1), glm::vec3(0, 0, 1));
-  vertices.emplace_back(glm::vec3(1, -1, 1), glm::vec2(1, 1), glm::vec3(0, 0, 1));
-
-  vertices.emplace_back(glm::vec3(-1, -1, -1), glm::vec2(0, 1), glm::vec3(0, -1, 0));
-  vertices.emplace_back(glm::vec3(-1, -1, 1), glm::vec2(1, 1), glm::vec3(0, -1, 0));
-  vertices.emplace_back(glm::vec3(1, -1, 1), glm::vec2(1, 0), glm::vec3(0, -1, 0));
-  vertices.emplace_back(glm::vec3(1, -1, -1), glm::vec2(0, 0), glm::vec3(0, -1, 0));
-
-  vertices.emplace_back(glm::vec3(-1, 1, -1), glm::vec2(0, 1), glm::vec3(0, 1, 0));
-  vertices.emplace_back(glm::vec3(-1, 1, 1), glm::vec2(1, 1), glm::vec3(0, 1, 0));
-  vertices.emplace_back(glm::vec3(1, 1, 1), glm::vec2(1, 0), glm::vec3(0, 1, 0));
-  vertices.emplace_back(glm::vec3(1, 1, -1), glm::vec2(0, 0), glm::vec3(0, 1, 0));
-
-  vertices.emplace_back(glm::vec3(-1, -1, -1), glm::vec2(1, 1), glm::vec3(-1, 0, 0));
-  vertices.emplace_back(glm::vec3(-1, -1, 1), glm::vec2(1, 0), glm::vec3(-1, 0, 0));
-  vertices.emplace_back(glm::vec3(-1, 1, 1), glm::vec2(0, 0), glm::vec3(-1, 0, 0));
-  vertices.emplace_back(glm::vec3(-1, 1, -1), glm::vec2(0, 1), glm::vec3(-1, 0, 0));
-
-  vertices.emplace_back(glm::vec3(1, -1, -1), glm::vec2(1, 1), glm::vec3(1, 0, 0));
-  vertices.emplace_back(glm::vec3(1, -1, 1), glm::vec2(1, 0), glm::vec3(1, 0, 0));
-  vertices.emplace_back(glm::vec3(1, 1, 1), glm::vec2(0, 0), glm::vec3(1, 0, 0));
-  vertices.emplace_back(glm::vec3(1, 1, -1), glm::vec2(0, 1), glm::vec3(1, 0, 0));
 
   unsigned int indics[] = { 0, 1, 2,
-    0, 2, 3,
-
-    6, 5, 4,
-    7, 6, 4,
-
-    10, 9, 8,
-    11, 10, 8,
-
-    12, 13, 14,
-    12, 14, 15,
-
-    16, 17, 18,
-    16, 18, 19,
-
-    22, 21, 20,
-    23, 22, 20
+    0, 2, 3
   };
   std::vector<unsigned int> indices;
   for(int index = 0;
@@ -349,9 +329,8 @@ int main(int argc, char ** argv)
   display.setCamera(&camera);
 
   std::shared_ptr<Asset> fighterAsset(new Asset());
-  fighterAsset->setTexture(std::shared_ptr<Texture>(new Texture("res\\F5S4.png")));
-//  fighterAsset->setMesh(std::shared_ptr<Mesh>(new Mesh(vertices, indices)));
-  fighterAsset->setMesh(std::shared_ptr<Mesh>(new Mesh("res\\monkey.obj")));
+  fighterAsset->setTexture(std::shared_ptr<Texture>(new Texture("./res/fighter.png")));
+  fighterAsset->setMesh(std::shared_ptr<Mesh>(new Mesh(vertices, indices)));
 
   std::vector<Object*> objects;
 
@@ -364,25 +343,18 @@ int main(int argc, char ** argv)
   state.displays.push_back(&display);
   state.spatialTree = new QuadTree(aabb);
   for(int index = 0;
-  index < 20;
+  index < 30000;
     index++)
   {
     addObject(objects, fighterAsset, state.spatialTree);
     state.spatialTree = state.spatialTree->top();
   }
-  Object * object = new Object();
 
-  object->setRot(0);
-  object->setXPos(0);
-  object->setYPos(0);
-  object->updateTransform();
-  object->setHalfSize(glm::i64vec2(OBJTOWORLD, OBJTOWORLD));
-  object->setAsset(fighterAsset);
-
-  state.spatialTree->addObject(object);
-  objects.push_back(object);
+  state.objects = objects;
 
   state.spatialTree = state.spatialTree->top();
+  state.prevFrameTime = SDL_GetTicks();
+  state.currentFrameTime = SDL_GetTicks();
 
   GameManager manager;
   manager.setGameState(&state);

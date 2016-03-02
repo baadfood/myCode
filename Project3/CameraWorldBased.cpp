@@ -80,7 +80,7 @@ void CameraWorldBased::updateTransform()
 /*  glm::vec3 scale(1/double(m_worldPerPixel), 1/double(m_worldPerPixel), 0.0f);
   m_perspective *= glm::scale(glm::mat4(1.0f), scale);*/
 
-  Object::setHalfSize(glm::i64vec2(m_pixelSize.x * m_worldPerPixel / 2, m_pixelSize.x * m_worldPerPixel / 2));
+  Object::setHalfSize(glm::u64vec2(m_pixelSize.x * m_worldPerPixel / 2, m_pixelSize.x * m_worldPerPixel / 2));
   Object::updateAabb();
 }
 
@@ -92,7 +92,7 @@ glm::mat4 const & CameraWorldBased::getTransform() const
 
 glm::i64vec2 CameraWorldBased::screenToWorld(glm::i32vec2 const & p_screen)
 {
-  glm::i64vec2 pos = p_screen;
+  glm::i64vec2 pos(p_screen.x, p_screen.y);
 
   pos -= glm::vec2(m_pixelSize.x/2, m_pixelSize.y/2);
   pos.y = -pos.y;

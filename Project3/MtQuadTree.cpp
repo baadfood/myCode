@@ -514,9 +514,9 @@ void MtQuadTree::updateTree()
 
 void MtQuadTree::subdivide()
 {
-  glm::i64vec2 offset(m_boundary.m_halfSize / 2);
+  glm::i64vec2 offset(m_boundary.m_halfSize / static_cast<glm::u64>(2));
   AABB childAabb;
-  childAabb.setSize(m_boundary.m_halfSize / float(2 / s_fatness));
+  childAabb.setSize(static_cast<glm::u64vec2>(static_cast<glm::f64vec2>(m_boundary.m_halfSize) / glm::f64(2 / s_fatness)));
 
   if(m_ne == nullptr)
   {

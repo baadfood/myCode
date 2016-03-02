@@ -2,7 +2,7 @@
 
 #include <GL/glew.h>
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include "stb_image.h"
 
 #include <cassert>
 #include <iostream>
@@ -37,6 +37,12 @@ Texture::Texture(std::string const & p_filename)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+  
+  GLenum errorCode = glGetError();
+  if(errorCode)
+  {
+    std::cout << "gl error while loading textures\n";
+  }
 
   stbi_image_free(imageData);
 }
@@ -53,6 +59,11 @@ void Texture::bind(unsigned int p_unit)
 
   glActiveTexture(GL_TEXTURE0 + p_unit);
   glBindTexture(GL_TEXTURE_2D, d->textureHandle);
+  GLenum errorCode = glGetError();
+  if(errorCode)
+  {
+    std::cout << "gl error while binding texture\n";
+  }
 }
 
 void Texture::unbind()

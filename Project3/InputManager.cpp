@@ -22,7 +22,7 @@ struct InputManager::Private
 InputManager::InputManager() :
   d(new Private())
 {
-  d->maxTicksToHandleInputFor = 5;
+  d->maxTicksToHandleInputFor = 10;
   d->name = "InputManager";
 }
 
@@ -37,12 +37,14 @@ std::string const & InputManager::getName() const
 
 void InputManager::advance(GameState * p_state)
 {
+  int eventsHandled = 0;
+  Uint32 ticks = SDL_GetTicks();
     // Max time to handle inputs?
   while (SDL_PollEvent(&d->event))
   {
-    if (SDL_GetTicks() - d->maxTicksToHandleInputFor > p_state->currentFrameTime)
+    if (SDL_GetTicks() - d->maxTicksToHandleInputFor > ticks)
     {
-      std::cerr << "Too much input to handle, need to stop\n";
+      std::cerr << "Too much input to handle, need to stop : " << eventsHandled << std::endl;
       // Too much input to handle, let's start doing other stuff so things don't lag
       return;
     }
@@ -55,6 +57,7 @@ void InputManager::advance(GameState * p_state)
       p_state->keysHeldDown.erase(d->event.key.keysym);
     }
     handleEvent(&(d->event), p_state);
+    eventsHandled++;
   }
 }
 

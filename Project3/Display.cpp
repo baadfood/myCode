@@ -11,16 +11,16 @@
 #include "Object.h"
 #include "utils.h"
 
-bool objectPriority(glm::u64vec2 p_pos, Object const * p_first, Object const * p_second)
+bool objectPriority(glm::i64vec2 p_pos, Object const * p_first, Object const * p_second)
 {
   return p_first->getAABB().getArea() * distanceSquared(p_pos, p_first->getPos()) < p_second->getAABB().getArea() * distanceSquared(p_pos, p_second->getPos());
 }
 
 struct Display::Private 
 {
-	SDL_Window * window;
-	SDL_GLContext glContext;
-	bool quit;
+  SDL_Window * window;
+  SDL_GLContext glContext;
+  bool quit;
   Uint32 windowId;
   CameraBase * camera;
   Object * inputFocus;
@@ -29,30 +29,31 @@ struct Display::Private
 
 Display::Display(int p_width, int p_height, std::string const & p_title)
 {
-	d = new Private();
+  d = new Private();
 
-	d->quit = false;
+  d->quit = false;
 
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 
-	d->window = SDL_CreateWindow(p_title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, p_width, p_height, SDL_WINDOW_OPENGL);
-	d->glContext = SDL_GL_CreateContext(d->window);
+  d->window = SDL_CreateWindow(p_title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, p_width, p_height, SDL_WINDOW_OPENGL);
+  d->glContext = SDL_GL_CreateContext(d->window);
 
-	GLenum status = glewInit();
+  GLenum status = glewInit();
 
-	if (status != GLEW_OK)
-	{
-		std::cerr << "GLEW failed to initialize\n";
-	}
+  if (status != GLEW_OK)
+  {
+    std::cerr << "GLEW failed to initialize\n";
+  }
   SDL_GL_SetSwapInterval(0);
 
-  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   d->windowId = SDL_GetWindowID(d->window);
@@ -61,9 +62,9 @@ Display::Display(int p_width, int p_height, std::string const & p_title)
 
 Display::~Display()
 {
-	SDL_GL_DeleteContext(d->glContext);
-	SDL_DestroyWindow(d->window);
-	delete d;
+  SDL_GL_DeleteContext(d->glContext);
+  SDL_DestroyWindow(d->window);
+  delete d;
 }
 
 Uint32 Display::getWinId()
@@ -83,19 +84,18 @@ void Display::setCamera(CameraBase * p_camera)
 
 void Display::clear(float p_red, float p_green, float p_blue, float p_alpha)
 {
-    glClearColor(p_red, p_green, p_blue, p_alpha);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+  glClearColor(p_red, p_green, p_blue, p_alpha);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Display::update()
 {
-	SDL_GL_SwapWindow(d->window);
+  SDL_GL_SwapWindow(d->window);
 }
 
 bool Display::isClosed()
 {
-	return d->quit;
+  return d->quit;
 }
 
 bool Display::handleEvent(SDL_Event * p_event, GameState * p_state)

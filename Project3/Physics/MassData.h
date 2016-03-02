@@ -7,7 +7,7 @@ struct MassData
 {
   glm::f32 mass;
   glm::f32 inertia;
-  glm::i64vec2 center;
+  glm::f32vec2 center;
 };
 
 #endif

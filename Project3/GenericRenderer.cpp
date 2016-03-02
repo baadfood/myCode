@@ -9,6 +9,17 @@
 
 #include <memory>
 
+#ifndef make_unique
+namespace std
+{
+  template<typename T, typename... Args>
+  std::unique_ptr<T> make_unique(Args&&... args)
+  {
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+  }
+}
+#endif
+
 void processRenderBatch(GenericRenderer::RenderBatch * p_batch, CameraWorldBased * p_camera)
 {
   p_camera->updateTransform();
@@ -17,7 +28,7 @@ void processRenderBatch(GenericRenderer::RenderBatch * p_batch, CameraWorldBased
     p_batch->models.resize(p_batch->objects.size());
   }
 
-  glm::u64vec2 cameraPos = p_camera->getPos();
+  glm::i64vec2 cameraPos = p_camera->getPos();
   glm::i64 worldPerPixel = p_camera->getWorldPerPixel();
 
   for(int index = 0;
@@ -97,7 +108,7 @@ void GenericRenderer::prepareRenderData(std::vector<Object*> p_objects, GameStat
   }
 
   Asset * currentAsset = nullptr;
-  unsigned int objCount = unsigned int(p_objects.size());
+  unsigned int objCount = static_cast<unsigned int>(p_objects.size());
   typedef decltype(m_renderBatches.begin()) RenderBatchIterator;
   RenderBatchIterator iter;
   for(int index = 0;

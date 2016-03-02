@@ -3,7 +3,7 @@
 
 #include "ContactFilter.h"
 
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <vector>
 
 class Shape;

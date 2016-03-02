@@ -17,19 +17,22 @@ public:
     eTypeCount = 4
   };
 
-
-  virtual ~Shape();
+  Shape()
+  {
+  }
+  
+  virtual ~Shape()
+  {
+  }
 
   virtual EType getType() { return m_type; }
-  virtual AABB const & getAabb() { return m_aabb; }
+  virtual AABB const & getAabb() const { return m_aabb; }
+  virtual AABB & getAabb() { return m_aabb; }
   virtual void computeAabb(AABB & p_aabb, Transform2d const & p_transform) = 0;
   virtual void calculateMassData(MassData & p_massData, glm::float32 p_density) = 0;
   virtual bool TestPoint(const Transform2d& p_transform, const glm::i64vec2 & p_pos) const = 0;
+protected:
 
-/*
-  virtual bool RayCast(b2RayCastOutput* output, const b2RayCastInput& input,
-                       const b2Transform& transform, int32 childIndex) const = 0;
-                       */
   EType m_type;
   AABB m_aabb;
 };

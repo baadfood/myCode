@@ -1,4 +1,4 @@
-#include "ObjectShader.h"
+/*#include "ObjectShader.h"
 
 #include <fstream>
 #include <iostream>
@@ -110,18 +110,16 @@ void ObjectShader::updateObjects(std::vector<Object*> const & p_objects)
 {
 
 }
-/*
-void ObjectShader::updateObjectPos(Object const & p_object)
-{
-  glUniformMatrix4fv(d->uniforms[eTransform], 1, GL_FALSE, &(p_object.getTransform()[0][0]));
-}
-*/
-/*
-void ObjectShader::updateObjectPos(Transform const & p_transform)
-{
-  glUniformMatrix4fv(d->uniforms[eTransform], 1, GL_FALSE, &(p_transform.getModel()[0][0]));
-}
-*/
+
+// void ObjectShader::updateObjectPos(Object const & p_object)
+// {
+//   glUniformMatrix4fv(d->uniforms[eTransform], 1, GL_FALSE, &(p_object.getTransform()[0][0]));
+// }
+// void ObjectShader::updateObjectPos(Transform const & p_transform)
+// {
+//   glUniformMatrix4fv(d->uniforms[eTransform], 1, GL_FALSE, &(p_transform.getModel()[0][0]));
+// }
+
 std::string ObjectShader::loadFile(std::string const & p_filename)
 {
   std::ifstream file;
@@ -202,3 +200,4 @@ void ObjectShader::checkProgramError(GLuint p_program, GLuint p_flag, const std:
     std::cerr << p_errorMessage << ": '" << error << "'" << std::endl;
   }
 }
+*/

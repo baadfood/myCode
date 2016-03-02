@@ -1,7 +1,8 @@
+/*
 #pragma once
 #include "Shape.h"
 
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 
 class Circle :
   public Shape
@@ -21,3 +22,4 @@ protected:
   glm::u64 m_radius;
 };
 
+*/

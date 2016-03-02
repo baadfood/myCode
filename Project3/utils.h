@@ -20,6 +20,27 @@ SpinlockThreadpool & getThreadPool();
 namespace mika
 {
   template<class T>
+  inline bool checkDuplicates(std::vector<T, std::allocator<T> > & p_vector)
+  {
+    int duplicates = 0;
+    auto end = p_vector.end();
+    end--;
+    for(auto orig = p_vector.begin();
+        orig != end;
+        orig++)
+    {
+      auto iter = std::find(orig + 1, p_vector.end(), *orig);
+      if(iter != p_vector.end())
+      {
+        duplicates++;
+      }
+    }
+    
+    std::cout << "Duplicate count: " << duplicates << std::endl;
+    
+    return duplicates == 0;
+  }
+  template<class T>
   inline bool removeOne(std::vector<T, std::allocator<T> > & p_vector, T const & p_value)
   {
     auto iter = std::find(p_vector.begin(), p_vector.end(), p_value);
@@ -79,12 +100,31 @@ namespace mika
   {
     return std::find(p_vector.begin(), p_vector.end(), p_value) - p_vector.begin();
   }
-  static char const * getConstChar(std::string & p_value)
+  static char const * getConstChar(std::string const & p_value)
   {
     static std::set<std::string> values;
     auto iter = values.insert(p_value);
     return iter.first->c_str();
   }
+  
+  template<class T>
+  inline T crossS(double p_scalar, T const & p_vector)
+  {
+    return T(-p_scalar * p_vector.y, p_scalar * p_vector.x);
+  }
+
+  template<class T>
+  inline T crossS(T const & p_vector, double p_scalar)
+  {
+    return T(p_scalar * p_vector.y, -p_scalar * p_vector.x);
+  }
+
+  template<class T1, class T2>
+  inline double cross(T1 const & p_vector1, T2 const & p_vector2)
+  {
+    return p_vector1.x * p_vector2.y - p_vector1.y * p_vector2.x;
+  }
+
 }
 
 namespace std
@@ -121,9 +161,8 @@ namespace glm
     return u64vec2(p_orig.x / p_divider, p_orig.y / p_divider);
   }
 }
-
-inline double distanceSquared(glm::i64vec2 p_pos1, glm::i64vec2 p_pos2)
+template<class T1, class T2>
+inline double distanceSquared(T1 p_pos1, T2 p_pos2)
 {
   return pow(double(p_pos1.x) - p_pos2.x, 2) + pow(double(p_pos1.y) - p_pos2.y, 2);
 }
-

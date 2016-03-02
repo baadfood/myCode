@@ -1,6 +1,8 @@
 #ifndef Transform_h_
 #define Transform_h_
 
+#define GLM_FORCE_RADIANS
+
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 

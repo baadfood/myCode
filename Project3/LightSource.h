@@ -1,7 +1,7 @@
 #ifndef LightSource_h_
 #define LightSource_h_
 
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 
 struct LightSource
 {

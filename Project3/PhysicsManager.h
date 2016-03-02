@@ -24,7 +24,7 @@ public:
   virtual ContactsData * getContacts();
   virtual bool checkCollision(Object * p_object1, Object * p_object2, std::vector<Contact *> & p_results);
   virtual void correctPositions();
-
+  virtual void processIsland(std::vector< Object* > const & p_island);
 
 protected:
 private:

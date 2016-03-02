@@ -1,6 +1,7 @@
+/*
 #pragma once
 
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include "AABB.h"
 
 class Shape
@@ -30,3 +31,4 @@ protected:
   glm::i64vec2 m_pos;
 };
 
+*/

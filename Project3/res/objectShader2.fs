@@ -25,7 +25,7 @@ out vec4 finalColor;
 void main() {
     vec3 normal = normalize(transpose(inverse(mat3(fragModel))) * fragNormal);
     vec3 surfacePos = vec3(fragModel * vec4(fragVert, 1));
-    vec4 surfaceColor = texture(tex, fragTexCoord);
+    vec4 surfaceColor = texture(tex, fragTexCoord.xy);
     vec3 surfaceToLight = normalize(light.position - surfacePos);
     vec3 surfaceToCamera = normalize(cameraPosition - surfacePos);
 
@@ -53,8 +53,8 @@ void main() {
     //final color (after gamma correction)
     vec3 gamma = vec3(1.0/2.2);
 
-	vec3 mapped = vec3(1.0) - exp(-linearColor * exposure);
-	mapped = pow(mapped, vec3(1.0 / gamma));
+    vec3 mapped = vec3(1.0) - exp(-linearColor * exposure);
+    mapped = pow(mapped, vec3(1.0 / gamma));
 
-	finalColor = vec4(mapped.xy, 1, 1);
+    finalColor = vec4(surfaceColor.a, surfaceColor.a, surfaceColor.a, surfaceColor.a);
 }

@@ -1,7 +1,7 @@
 #ifndef CameraBase_h_
 #define CameraBase_h_
 
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include "AABB.h"
 #include "Object.h"
 

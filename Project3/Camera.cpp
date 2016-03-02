@@ -25,12 +25,12 @@ AABB const & Camera::getAABB() const
 void Camera::moveBy(glm::vec3 const & p_pos)
 {
   m_position += p_pos;
-  glm::dvec4 topRight = glm::inverse(m_perspective * glm::lookAt(m_position, m_position + m_forward, m_up)) * glm::vec4(1, 1, -m_position.z, 1);
+  glm::dvec4 topRight = static_cast<glm::dmat4>(glm::inverse(m_perspective * glm::lookAt(m_position, m_position + m_forward, m_up))) * glm::dvec4(1, 1, -m_position.z, 1);
   topRight /= topRight.w;
-  glm::dvec4 botLeft = glm::inverse(m_perspective * glm::lookAt(m_position, m_position + m_forward, m_up)) * glm::vec4(-1, -1, -m_position.z, 1);
+  glm::dvec4 botLeft = static_cast<glm::dmat4>(glm::inverse(m_perspective * glm::lookAt(m_position, m_position + m_forward, m_up))) * glm::dvec4(-1, -1, -m_position.z, 1);
   botLeft /= botLeft.w;
   m_aabb.setCenter(glm::i64vec2((topRight.x + botLeft.x) / 2, (topRight.y + botLeft.y) / 2));
-  m_aabb.setSize(glm::i32vec2(topRight.x - botLeft.x, topRight.y - botLeft.y));
+  m_aabb.setSize(glm::u64vec2(topRight.x - botLeft.x, topRight.y - botLeft.y));
 }
 
 void Camera::moveTo(glm::vec3 const & p_pos)

@@ -6,7 +6,7 @@
 #include "obj_loader.h"
 #include "Object.h"
 
-#include <GL\glew.h>
+#include <GL/glew.h>
 class Shader;
 
 class Mesh

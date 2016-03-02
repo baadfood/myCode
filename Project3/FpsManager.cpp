@@ -15,6 +15,7 @@ FpsManager::FpsManager() :
   d(new Private())
 {
   d->name = "FpsManager";
+  d->frameDelay = 16;
 }
 
 std::string const & FpsManager::getName() const

@@ -6,14 +6,12 @@
 #include "Asset.h"
 #include "AABB.h"
 #include "Transform2D.h"
-#include "Physics\Transform.h"
+#include "Physics/Transform.h"
 #include "UserInputHandler.h"
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <vector>
 #include <memory>
 #include "Spinlock.h"
-#include "Physics\Fixture.h"
-#include "Physics\Contact.h"
 
 class Contact;
 class SpatialTree;
@@ -34,7 +32,7 @@ public:
 
   virtual ~Object();
 
-  virtual void getConnectedObjects(std::vector<Object*> p_connectedObjects);
+  virtual void getConnectedObjects(std::vector<Object*> & p_connectedObjects);
 
   virtual void addContact(Contact * p_manifold);
   virtual std::vector<Contact*> const & getContacts();
@@ -53,11 +51,21 @@ public:
   virtual void updateTree();
 
   virtual void advance(glm::u64 p_nanos);
-
+  
   virtual void moveBy(glm::i64vec2 const & p_pos);
   virtual void moveTo(glm::i64vec2 const & p_pos);
   virtual void setXPos(glm::int64 p_x);
   virtual void setYPos(glm::int64 p_y);
+  
+  virtual void setSpeed(glm::i64vec2 p_speed);
+  virtual void setAccel(glm::i64vec2 p_accel);
+  virtual void addAccel(glm::i64vec2 p_accel);
+  virtual glm::i64vec2 const & getSpeed() const;
+
+  virtual void setRotSpeed(glm::float32 p_rotSpeed);
+  virtual void setRotAccel(glm::float32 m_rotAccel);
+  virtual void addRotAccel(glm::float32 m_rotAccel);
+  virtual glm::float32 const & getRotSpeed() const;
 
   virtual glm::int64 getXPos() const;
   virtual glm::int64 getYPos() const;
@@ -91,10 +99,17 @@ public:
 
   virtual void addInputHandler(std::shared_ptr<UserInputHandler> p_handler);
   virtual void removeInputHandler(std::shared_ptr<UserInputHandler> p_handler);
-protected:
 
   virtual void updateAabb();
+  virtual void updateMass();
+  
+  virtual glm::f64 getMass() const;
+  virtual glm::f64 getInvMass() const;
+  virtual glm::f64 getInertia() const;
+  virtual glm::f64 getInvInertia() const;
 
+  virtual void applyImpulse(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector);
+  
 private:
   std::vector<std::shared_ptr<UserInputHandler>> m_inputHandlers;
 
@@ -120,6 +135,11 @@ private:
   glm::float32 m_rot;
   glm::float32 m_rotSpeed;
   glm::float32 m_rotAccel;
+  
+  glm::i64vec2 m_centerOfMass;
+  
+  glm::f64 m_mass, m_invMass;
+  glm::f64 m_inertia, m_invInertia;
 
   Transform2D m_transform;
   Transform2d m_physicsTransform;

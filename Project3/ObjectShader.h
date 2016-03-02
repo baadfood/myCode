@@ -1,5 +1,3 @@
-/*
-
 #ifndef ObjectShader_h_
 #define ObjectShader_h_
 
@@ -48,5 +46,3 @@ private:
 };
 
 #endif
-
-*/

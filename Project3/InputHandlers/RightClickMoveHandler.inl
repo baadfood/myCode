@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../UserInputHandler.h"
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <SDL.h>
 #include "../Object.h"
 #include "../CameraBase.h"

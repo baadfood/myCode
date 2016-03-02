@@ -1,7 +1,7 @@
 #ifndef AABB_h_
 #define AABB_h_
 
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <iostream>
 #include "Directions.h"
 #include <cassert>
@@ -9,7 +9,7 @@
 
 struct AABB
 {
-  AABB(glm::i64vec2 p_pos = glm::i64vec2(0,0), glm::u64vec2 p_halfSize = glm::i64vec2(0, 0)):
+  AABB(glm::i64vec2 p_pos = glm::i64vec2(0,0), glm::u64vec2 p_halfSize = glm::u64vec2(0, 0)):
   m_pos(p_pos),
   m_halfSize(p_halfSize)
   {}

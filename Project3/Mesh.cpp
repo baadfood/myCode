@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-#include <GL\glew.h>
+#include <GL/glew.h>
 #include "Vertex.h"
 #include <iostream>
 
@@ -33,7 +33,7 @@ unsigned int Mesh::getDrawCount() const
 
 void Mesh::initMesh(IndexedModel const & p_model)
 {
-  d->drawCount = unsigned int(p_model.indices.size());
+  d->drawCount = static_cast<unsigned int>(p_model.indices.size());
   glGenBuffers(Mesh::eNumBuffers, d->buffers);
 
   glBindBuffer(GL_ARRAY_BUFFER, d->buffers[ePosition_Vb]);

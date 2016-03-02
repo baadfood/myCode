@@ -9,7 +9,7 @@
 class SpinlockThreadpool
 {
 public:
-  SpinlockThreadpool(int p_threadCount = 7, int p_taskQueueSize = 200):
+  SpinlockThreadpool(int p_threadCount = 6, int p_taskQueueSize = 200):
   m_taskQueue(p_taskQueueSize)
   {
     setThreadCount(p_threadCount);
