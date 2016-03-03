@@ -3,8 +3,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
 message("CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}")
 
 find_package(SDL2 REQUIRED)
+
+set(CMAKE_PREFIX_PATH "E:/Projects/myCode3/glew-1.13.0")
+set(CMAKE_LIBRARY_PATH "E:/Projects/myCode3/glew-1.13.0/lib/Release/x64")
+set(BOOST_ROOT "${CMAKE_SOURCE_DIR}/boost_1_59_0")
+
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(Boost REQUIRED)
 
 set(Project3_SRCS
 ./CameraWorldBased.cpp
@@ -114,12 +120,12 @@ set(Project3_INLS./InputHandlers/MoveOnKeyDownHandler.inl
 add_executable(Project3 ${Project3_SRCS} ${Project3_HDRS} ${Project3_INLS})
 
 if(NOT GLM_INCLUDE_DIRS)
-  find_path(GLM_INCLUDE_DIRS NAMES glm/glm.hpp)
+  find_path(GLM_INCLUDE_DIRS NAMES glm/glm.hpp HINTS "${CMAKE_SOURCE_DIR}/glm")
 endif()
 if(NOT GLM_INCLUDE_DIRS)
   message(FATAL_ERROR "GLM_INCLUDE_DIRS not set or found \"${GLM_INCLUDE_DIRS}\"")
 endif()
 message("GLM_INCLUDE_DIRS \"${GLM_INCLUDE_DIRS}\"")
-include_directories(${GLM_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})
+include_directories(${GLM_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
 
 target_link_libraries(Project3 ${SDL2_LIBRARY} ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES})

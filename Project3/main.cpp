@@ -103,13 +103,13 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
   float sinCounter = sinf(rand);
 
   object->setRot(-rand);
-  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size());
-  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size());
+  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() + 1000);
+  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() + 1000);
   object->updateTransform();
   object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
   object->setAsset(p_asset);
   object->setRotSpeed(0);
-  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()), -sinCounter * OBJTOWORLD * std::sqrt(p_objects.size())));
+  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size() + 1000), -sinCounter * OBJTOWORLD * std::sqrt(p_objects.size() + 1000)));
   
   CircleShape * circleShape = new CircleShape;
   circleShape->pos = glm::i64vec2(0, 0);
@@ -117,7 +117,7 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
  
   Fixture * fixture = new Fixture;
   fixture->density = 0.000001;
-  fixture->friction = 1;
+  fixture->friction = 0.5;
   fixture->restitution = 1;
   fixture->object = object;
   fixture->shape = circleShape;
@@ -323,8 +323,8 @@ int main(int argc, char ** argv)
     indices.push_back(indics[index]);
   }
 
-  Display display(800, 600, "Screen 1");
-  CameraWorldBased camera(glm::i64vec2(0, 0), glm::i32vec2(800, 600), OBJTOWORLD * 10, 1);
+  Display display(1920, 1024, "Screen 1");
+  CameraWorldBased camera(glm::i64vec2(0, 0), glm::i32vec2(1920, 1024), OBJTOWORLD * 10, 1);
   camera.updateTransform();
   display.setCamera(&camera);
 

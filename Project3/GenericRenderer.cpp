@@ -9,8 +9,7 @@
 
 #include <memory>
 
-#ifndef make_unique
-namespace std
+namespace mika
 {
   template<typename T, typename... Args>
   std::unique_ptr<T> make_unique(Args&&... args)
@@ -18,7 +17,6 @@ namespace std
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
   }
 }
-#endif
 
 void processRenderBatch(GenericRenderer::RenderBatch * p_batch, CameraWorldBased * p_camera)
 {
@@ -135,7 +133,7 @@ void GenericRenderer::prepareRenderData(std::vector<Object*> p_objects, GameStat
   iter != m_renderBatches.end();
     iter++)
   {
-    tasks.push_back(std::make_unique<std::future<void>>(getThreadPool().push(std::bind(processRenderBatch, iter->second.get(), m_camera))));
+    tasks.push_back(mika::make_unique<std::future<void>>(getThreadPool().push(std::bind(processRenderBatch, iter->second.get(), m_camera))));
   }
 
   getThreadPool().waitAndDoTasks();
