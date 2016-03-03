@@ -109,6 +109,10 @@ public:
   virtual glm::f64 getInvInertia() const;
 
   virtual void applyImpulse(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector);
+
+  virtual bool isInCorrectQuadtreeNode() const;
+
+  virtual void updateLogic();
   
 private:
   std::vector<std::shared_ptr<UserInputHandler>> m_inputHandlers;
@@ -143,6 +147,8 @@ private:
 
   Transform2D m_transform;
   Transform2d m_physicsTransform;
+
+  bool m_inCorrectQuadtreeNode;
 };
 
 #endif

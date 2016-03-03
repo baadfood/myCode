@@ -11,7 +11,7 @@ public:
   virtual ~LogicManager();
   virtual std::string const & getName() const;
   virtual void advance(GameState * p_state);
-
+  void process();
 protected:
 private:
   struct Private;

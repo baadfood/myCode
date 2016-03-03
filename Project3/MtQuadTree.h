@@ -39,6 +39,7 @@ public:
 
   bool somethingToUpdate();
 
+  virtual bool contains(AABB const & p_aabb) const;
 
   MtQuadTree * top();
 

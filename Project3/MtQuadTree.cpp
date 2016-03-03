@@ -68,6 +68,10 @@ MtQuadTree * MtQuadTree::top()
   return this;
 }
 
+bool MtQuadTree::contains(AABB const & p_aabb) const
+{
+  return m_boundary.contains(p_aabb);
+}
 
 MtQuadTree::~MtQuadTree()
 {

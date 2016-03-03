@@ -625,6 +625,11 @@ void QuadTree::pruneTree()
   }
 }
 
+bool QuadTree::contains(AABB const & p_aabb) const
+{
+  return m_boundary.contains(p_aabb);
+}
+
 void QuadTree::print(std::ostream & p_stream, std::string const & p_indentation)
 {
   p_stream << p_indentation << "QuadTree " << std::endl;

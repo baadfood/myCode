@@ -188,6 +188,10 @@ void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
   {
     contact->applyImpulse();
   }
+  for (Contact * contact : contacts)
+  {
+    contact->positionCorrection();
+  }
 }
 
 namespace

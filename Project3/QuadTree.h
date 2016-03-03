@@ -34,6 +34,8 @@ public:
 
   void print(std::ostream & p_stream, std::string const & p_indentation);
 
+  virtual bool contains(AABB const & p_aabb) const;
+
   void setBoundary(AABB const & p_aabb); // DO NOT USE UNLESS YOU ARE CRAZY
 
 protected:

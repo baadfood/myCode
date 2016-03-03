@@ -88,6 +88,11 @@ SpatialTree * Object::getTreeNode()
   return m_treeNode;
 }
 
+bool Object::isInCorrectQuadtreeNode() const
+{
+  return m_inCorrectQuadtreeNode;
+}
+
 void Object::setTreeNode(SpatialTree * p_node, size_t p_index)
 {
   m_treeNode = p_node;
@@ -224,6 +229,11 @@ bool Object::handleGotFocus(SDL_Event const * p_event)
 {
   // By default, try to handle incoming event to see if we want focus.
   return handleInput(p_event);
+}
+
+void Object::updateLogic()
+{
+
 }
 
 void Object::handleLostFocus(SDL_Event const * p_event)

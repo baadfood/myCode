@@ -83,6 +83,19 @@ public:
       obj2->applyImpulse(  tangentImpulse, radiiObj2 );
     }
   }
+
+  void positionCorrection()
+  {
+    const float c_slop = 0.1;
+    const float c_correctionAmount = 0.4;
+    Object * obj1 = fixtures[0].object;
+    Object * obj2 = fixtures[1].object;
+
+    glm::f64vec2 correction = (std::max(manifold.penetration - c_slop, 0.0) / (obj1->getInvMass() + obj2->getInvMass())) * c_correctionAmount * manifold.localNormal;
+
+    obj1->moveBy(-correction * obj1->getInvMass());
+    obj2->moveBy(correction * obj2->getInvMass());
+  }
 };
 
 #endif

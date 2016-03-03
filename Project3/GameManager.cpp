@@ -5,6 +5,7 @@
 #include <SDL.h>
 
 #include <iostream>
+#include <sstream>
 
 #include "GameState.h"
 
@@ -51,13 +52,17 @@ bool GameManager::progressFrame()
   d->state->currentFrameTime = SDL_GetTicks();
   d->state->ticksAdvanced = d->state->currentFrameTime - d->state->prevFrameTime;
 
+  std::stringstream sstream;
   for (auto iter = d->managers.begin();
   iter != d->managers.end();
     iter++)
   {
     Uint32 ticks = SDL_GetTicks();
     (*iter)->advance(d->state);
-    std::cout << (*iter)->getName() << " ticks: " << SDL_GetTicks() - ticks << std::endl;
+    sstream << (*iter)->getName() << " ticks: " << SDL_GetTicks() - ticks << std::endl;
   }
+  system("cls");
+  std::cout << sstream.str();
+  
   return true;
 }

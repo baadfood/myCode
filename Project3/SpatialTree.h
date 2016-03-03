@@ -20,5 +20,6 @@ public:
   virtual void getObjectsAt(glm::i64vec2 const & p_worldPos, std::vector<Object*> & p_objects) = 0;
   virtual void getObjectsIn(AABB const & p_aabb, std::vector<Object*> & p_objects) = 0;
   virtual void getObjectsIntersected(AABB const & p_aabb, std::vector<Object*> & p_objects) = 0;
+  virtual bool contains(AABB const & p_aabb) const = 0;
 };
 
