@@ -81,6 +81,7 @@ set(Project3_HDRS
 ./Physics/Collision/CircleToCircleCollision.h
 ./Physics/Collision/Collision.h
 ./Physics/Collision/CircleToPolygonCollision.h
+./Physics/Collision/PolygonToPolygonCollision.h
 ./Physics/Contact/CircleContact.h
 ./Physics/Fixture.h
 ./Physics/ContactFilter.h
