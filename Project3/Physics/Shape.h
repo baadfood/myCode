@@ -30,7 +30,6 @@ public:
   virtual AABB & getAabb() { return m_aabb; }
   virtual void computeAabb(AABB & p_aabb, Transform2d const & p_transform) = 0;
   virtual void calculateMassData(MassData & p_massData, glm::float32 p_density) = 0;
-  virtual bool TestPoint(const Transform2d& p_transform, const glm::i64vec2 & p_pos) const = 0;
 protected:
 
   EType m_type;
