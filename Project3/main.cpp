@@ -21,6 +21,7 @@
 #include "InputHandlers/CameraRightClickMoveHandler.inl"
 #include "Physics/Collision/Collision.h"
 #include "Physics/Shapes/CircleShape.h"
+#include "Physics/Shapes/PolygonShape.h"
 
 //FILE _iob[] = { *stdin, *stdout, *stderr };
 #include <SDL.h>
@@ -44,25 +45,35 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
   float cosCounter = cosf(rand);
   float sinCounter = sinf(rand);
 
-  object->setRot(-rand);
-  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() + 1000);
-  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() + 1000);
+  object->setRot(0);
+  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() * 5);
+  object->setYPos(0);
   object->updateTransform();
   object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
   object->setAsset(p_asset);
   object->setRotSpeed(0);
-  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size() + 1000), -sinCounter * OBJTOWORLD * std::sqrt(p_objects.size() + 1000)));
-  
+  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()), p_objects.size() * OBJTOWORLD / 2));
+  /*
   CircleShape * circleShape = new CircleShape;
   circleShape->pos = glm::i64vec2(0, 0);
   circleShape->radius = OBJTOWORLD;
- 
+ */
+  PolygonShape * poly = new PolygonShape;
+  std::vector<glm::f64vec2> vertices;
+  vertices.resize(4);
+  vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
+  vertices[1] = glm::f64vec2(-OBJTOWORLD, OBJTOWORLD);
+  vertices[2] = glm::f64vec2(OBJTOWORLD, -OBJTOWORLD);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
+
+  poly->setVertices(vertices);
+
   Fixture * fixture = new Fixture;
-  fixture->density = 0.000001;
+  fixture->density = 0.0000000000000000000001;
   fixture->friction = 0.5;
   fixture->restitution = 1;
   fixture->object = object;
-  fixture->shape = circleShape;
+  fixture->shape = poly;
   
   object->addFixture(fixture);
   
@@ -119,7 +130,7 @@ int main(int argc, char ** argv)
   state.displays.push_back(&display);
   state.spatialTree = new QuadTree(aabb);
   for(int index = 0;
-  index < 30000;
+  index < 2;
     index++)
   {
     addObject(objects, fighterAsset, state.spatialTree);

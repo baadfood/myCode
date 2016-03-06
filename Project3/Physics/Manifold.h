@@ -21,7 +21,8 @@ class Manifold
 public:
   enum EManifoldType
   {
-    eCircles
+    eCircles,
+    ePolygons
   };
 
   static Manifold * newManifold()

@@ -19,11 +19,17 @@ public:
   glm::f64 contactFriction;
   glm::f64 contactRestitution;
   glm::f64vec2 relativeVelocity;
+
   
   void applyImpulse()
   {
     Object * obj1 = fixtures[0].object;
     Object * obj2 = fixtures[1].object;
+    glm::f64vec2 obj1Speed((glm::f64vec2)(obj1->getSpeed()));
+    glm::f64vec2 obj2Speed((glm::f64vec2)(obj2->getSpeed()));
+    glm::f64 obj1RotSpeed = obj1->getRotSpeed();
+    glm::f64 obj2RotSpeed = obj2->getRotSpeed();
+
     for(unsigned short i = 0; i < manifold.pointCount; ++i)
     {
       // Calculate radii from COM to contact
@@ -31,17 +37,18 @@ public:
       glm::f64vec2 radiiObj2 = (glm::f64vec2)(manifold.contactPoints[i].contactPoint - obj2->getPos());
 
       // Relative velocity
-      glm::f64vec2 velocity = (glm::f64vec2)obj2->getSpeed() + mika::crossS(obj2->getRotSpeed(), radiiObj2 ) -
-                              (glm::f64vec2)obj1->getSpeed() - mika::crossS(obj1->getRotSpeed(), radiiObj1 );
+      glm::f64vec2 velocity = obj2Speed + mika::crossS(obj2RotSpeed, radiiObj2 ) -
+                              obj1Speed - mika::crossS(obj1RotSpeed, radiiObj1 );
 
       // Relative velocity along the normal
       glm::f64 contactVel = glm::dot(velocity, manifold.localNormal);
 
       // Do not resolve if velocities are separating
-      if(contactVel > 0
-      || contactVel != contactVel
-      )
+      if (contactVel >= 0
+      ||  contactVel != contactVel)
+      {
         return;
+      }
 
       glm::f64 raCross1 = mika::cross(radiiObj1, manifold.localNormal);
       glm::f64 raCross2 = mika::cross(radiiObj2, manifold.localNormal);
@@ -58,6 +65,11 @@ public:
       obj2->applyImpulse( impulse, radiiObj2 );
 
       glm::f64vec2 t = velocity - (manifold.localNormal * glm::dot(velocity, manifold.localNormal));
+      if (glm::length(t) == 0)
+      {
+        // HEADSHOT, going directly along the normal.
+        t = velocity;
+      }
       t = glm::normalize(t);
 
       // j tangent magnitude
@@ -86,6 +98,7 @@ public:
 
   void positionCorrection()
   {
+    return;
     const float c_slop = 0.1;
     const float c_correctionAmount = 0.4;
     Object * obj1 = fixtures[0].object;

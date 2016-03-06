@@ -261,7 +261,7 @@ void Object::advance(glm::u64 p_nanos)
 
 
   m_physicsTransform.pos = m_pos;
-  m_physicsTransform.rot = glm::fvec2(sin(m_rot), cos(m_rot));
+  m_physicsTransform.rot = glm::fvec2(cos(m_rot), sin(m_rot));
 
   for(auto iter = m_fixtures.begin();
       iter != m_fixtures.end();

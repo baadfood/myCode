@@ -8,6 +8,8 @@
 #include <complex>
 #include "../Shapes/CircleShape.h"
 #include <Object.h>
+#include "Physics/Fixture.h"
+#include "Physics/Contact.h"
 
 class CircleToCircleCollision: public Collision
 {

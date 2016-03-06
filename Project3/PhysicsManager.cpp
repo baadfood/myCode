@@ -9,6 +9,7 @@
 #include "Object.h"
 #include "Physics/Shape.h"
 #include "Physics/Collision/CircleToCircleCollision.h"
+#include "Physics/Collision/PolygonToPolygonCollision.h"
 #include "QuadTree.h"
 
 #include <atomic>
@@ -34,6 +35,7 @@ d(new Private())
 {
   d->name = "PhysicsManager";
   d->collisionDetector.registerCollisionHandler(Shape::eCircle, Shape::eCircle, new CircleToCircleCollision);
+  d->collisionDetector.registerCollisionHandler(Shape::ePolygon, Shape::ePolygon, new PolygonToPolygonCollision);
 }
 
 PhysicsManager::~PhysicsManager()
@@ -200,10 +202,18 @@ namespace
   {
     if(p_second.empty())
     {
+      if (p_first.empty())
+      {
+        return &p_first < &p_second;
+      }
       return true;
     }
-    if(p_first.empty())
+    if (p_first.empty())
     {
+      if (p_second.empty())
+      {
+        return &p_first < &p_second;
+      }
       return false;
     }
     return p_first.front() < p_second.front();
@@ -249,11 +259,11 @@ void PhysicsManager::advance(GameState * p_state)
   while (tasks.empty() == false)
   {
     for (auto iter = tasks.begin();
-      iter != tasks.end();
-      )
+         iter != tasks.end();
+        )
     {
       if(iter->valid()
-      && iter->wait_for(std::chrono::seconds(0)) == std::future_status::ready
+      && iter->wait_for(std::chrono::seconds(1)) == std::future_status::ready
       )
       {
         contactData = iter->get();
@@ -266,10 +276,10 @@ void PhysicsManager::advance(GameState * p_state)
         delete contactData;
         std::swap(tasks.back(), *iter);
         tasks.pop_back();
-      }
-      else
-      {
-	iter++;
+        if (tasks.empty())
+        {
+          break;
+        }
       }
     }
   }

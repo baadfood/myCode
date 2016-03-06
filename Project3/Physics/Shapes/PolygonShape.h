@@ -19,7 +19,7 @@ public:
 
   PolygonShape()
   {
-    Shape::m_type = Shape::eCircle;
+    Shape::m_type = Shape::ePolygon;
   }
 
   virtual ~PolygonShape()
@@ -50,14 +50,14 @@ public:
       index++)
     {
       glm::f64vec2 point1 = vertices[index];
-      unsigned int nextIndex = index + 1 < vertexCount ? index : 0;
+      unsigned int nextIndex = index + 1 < vertexCount ? index + 1 : 0;
       glm::f64vec2 point2 = vertices[nextIndex];
 
       glm::f64 D = mika::cross(point1, point2);
-      glm::f64 triangleArea = 0.f * D;
+      glm::f64 triangleArea = 0.5f * D;
       area += triangleArea;
 
-      c += triangleArea * inv3 * (point1 + point2);
+      centroid += triangleArea * inv3 * (point1 + point2);
 
       glm::f64 intxSqr = point1.x * point1.x + point1.x * point2.x + point2.x * point2.x;
       glm::f64 intySqr = point1.y * point1.y + point1.y * point2.y + point2.y * point2.y;
@@ -142,7 +142,7 @@ public:
           nextIndex = index;
         }
 
-        if (cross == 0.0 && vert1.x * vert1.y == vert2.x * vert2.y)
+        if (cross == 0.0 && vert1.x * vert1.y > vert2.x * vert2.y)
         {
           nextIndex = index;
         }
@@ -177,6 +177,7 @@ public:
 
       index1 = index2;
     }
+    return true;
   }
 
   glm::f64vec2 getSupport(glm::f64vec2 const & p_direction)
