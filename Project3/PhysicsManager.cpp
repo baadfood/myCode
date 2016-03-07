@@ -68,7 +68,6 @@ void PhysicsManager::moveObjects()
     {
       d->objectsToUpdate->at(currentIndex)->advance(d->nanosToAdvance);
       d->objectsToUpdate->at(currentIndex)->updateAabb();
-      d->objectsToUpdate->at(currentIndex)->updateMass();
       d->objectsToUpdate->at(currentIndex)->clearContacts();
     }
   }

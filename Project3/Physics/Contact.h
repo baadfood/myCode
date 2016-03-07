@@ -45,19 +45,10 @@ public:
       glm::f64vec2 obj2Vel = obj2Speed + mika::crossS(obj2RotSpeed, radiiObj2);
 
       glm::f64vec2 velocity;
-      bool flipX = false;
-      bool flipY = false;
-      velocity.x = obj2Vel.x - obj1Vel.x;
-      velocity.y = obj2Vel.y - obj1Vel.y;
-      if (shape1Pos.x < shape2Pos.x)
-      {
-        manifold.localNormal.x = -manifold.localNormal.x;
-      }
-      if (shape1Pos.y < shape2Pos.y)
-      {
-        manifold.localNormal.y = -manifold.localNormal.y;
-      }
-      // Relative velocity along the normal
+      velocity = obj2Vel - obj1Vel;
+      glm::f64vec2 positionRelation = glm::normalize(glm::f64vec2(shape2Pos - shape1Pos));
+
+            // Relative velocity along the normal
       glm::f64 contactVel = glm::dot(velocity, manifold.localNormal);
 
       // Do not resolve if velocities are separating
@@ -66,6 +57,8 @@ public:
       {
         return;
       }
+
+
 
       glm::f64 raCross1 = mika::cross(radiiObj1, manifold.localNormal);
       glm::f64 raCross2 = mika::cross(radiiObj2, manifold.localNormal);
@@ -115,7 +108,6 @@ public:
 
   void positionCorrection()
   {
-    return;
     const float c_slop = 0.1;
     const float c_correctionAmount = 0.4;
     Object * obj1 = fixtures[0].object;

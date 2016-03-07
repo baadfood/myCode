@@ -44,16 +44,21 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
 
   float cosCounter = cosf(rand);
   float sinCounter = sinf(rand);
+  float rotspeed = 0;
+/*if (p_objects.size() == 0)
+  {
+    rotspeed = 31.415926;
+  }*/
 
   object->setRot(0);
-  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() * 3);
-  object->setYPos(0);
+  object->setXPos(0);
+  object->setYPos(-OBJTOWORLD * p_objects.size() * 3);
   object->updateTransform();
   object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
   object->setAsset(p_asset);
-  object->setRotSpeed(0);
+  object->setRotSpeed(rotspeed);
   object->setRot(p_objects.size());
-  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()), 0));
+  object->setSpeed(glm::i64vec2(0, -sinCounter * OBJTOWORLD * std::sqrt(p_objects.size())));
   /*
   CircleShape * circleShape = new CircleShape;
   circleShape->pos = glm::i64vec2(0, 0);
@@ -77,7 +82,8 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
   fixture->shape = poly;
   
   object->addFixture(fixture);
-  
+  object->updateMass();
+
   tree->addObject(object);
   p_objects.push_back(object);
 }

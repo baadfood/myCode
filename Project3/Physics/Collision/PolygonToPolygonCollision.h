@@ -137,7 +137,7 @@ public:
       incTr = &p_tr1;
       incidentPoly = poly1;
       refIndex = face2;
-      flip = false;
+      flip = true;
     }
 
     glm::f64vec2 incidentFace[2];
@@ -208,6 +208,13 @@ public:
                                - ((glm::f64vec2)p_fix2.object->getSpeed() + ((glm::f64vec2(poly2->getPos()) - p_contact->manifold.localNormal * p_contact->manifold.penetration) * (glm::f64)p_fix2.object->getRotSpeed()));
     double speed = glm::length(p_contact->relativeVelocity);
     p_contact->timeOfImpact = p_contact->manifold.penetration / speed;
+
+
+    p_contact->fixtures[0].object = p_fix1.object;
+    p_contact->fixtures[1].object = p_fix2.object;
+    p_contact->fixtures[0].shape = p_fix1.shape;
+    p_contact->fixtures[1].shape = p_fix2.shape;
+
 
 
     return true;

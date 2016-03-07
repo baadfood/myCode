@@ -48,6 +48,12 @@ public:
                                 -((glm::f64vec2)p_fix2.object->getSpeed() + ((glm::f64vec2(circle2->getPos()) - normal * (glm::f64)circle2->getRadius()) * (glm::f64)p_fix2.object->getRotSpeed()));
     double speed = glm::length(p_contact->relativeVelocity);
     p_contact->timeOfImpact = p_contact->manifold.penetration / speed;
+
+    p_contact->fixtures[0].object = p_fix1.object;
+    p_contact->fixtures[1].object = p_fix2.object;
+    p_contact->fixtures[0].shape = p_fix1.shape;
+    p_contact->fixtures[1].shape = p_fix2.shape;
+
     return true;
   }
 

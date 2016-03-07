@@ -32,10 +32,6 @@ bool ShapeCollisionDetector::getCollisions(Object * p_object1, Object * p_object
         Contact *newContact = nullptr;
         if (m_handlers[fix1->shape->getType()][fix2->shape->getType()]->Collide(newContact, *fix1, p_object1->getTransform2d(), *fix2, p_object2->getTransform2d()))
         {
-          newContact->fixtures[0].object = p_object1;
-          newContact->fixtures[1].object = p_object2;
-          newContact->fixtures[0].shape = fix1->shape;
-          newContact->fixtures[1].shape = fix2->shape;
           p_object1->addContact(newContact);
           p_results.push_back(newContact);
           retval = true;
