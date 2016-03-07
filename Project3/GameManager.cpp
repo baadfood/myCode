@@ -49,8 +49,8 @@ GameState * GameManager::getGameState()
 bool GameManager::progressFrame()
 {
   d->state->prevFrameTime = d->state->currentFrameTime;
- //d->state->currentFrameTime += 10;
-  d->state->currentFrameTime = SDL_GetTicks();
+  d->state->currentFrameTime += 10;
+  //d->state->currentFrameTime = SDL_GetTicks();
   d->state->ticksAdvanced = d->state->currentFrameTime - d->state->prevFrameTime;
 
   std::stringstream sstream;

@@ -16,6 +16,64 @@ struct AABB
 
   ~AABB() {}
 
+  inline void reset()
+  {
+    m_pos.x = 0;
+    m_pos.y = 0;
+    m_halfSize.x = 0;
+    m_halfSize.y = 0;
+  }
+
+  inline AABB & operator+=(AABB const & p_other)
+  {
+    if(m_halfSize.x == 0
+    && m_halfSize.y == 0)
+    {
+      m_pos = p_other.m_pos;
+      m_halfSize = p_other.m_halfSize;
+      return *this;
+    }
+    glm::i64vec2 low;
+    glm::i64vec2 high;
+
+    if (m_pos.x - m_halfSize.x < p_other.m_pos.x - p_other.m_halfSize.x)
+    {
+      low.x = m_pos.x - m_halfSize.x;
+    }
+    else
+    {
+      low.x = p_other.m_pos.x - p_other.m_halfSize.x;
+    }
+    if (m_pos.y - m_halfSize.y < p_other.m_pos.y - p_other.m_halfSize.y)
+    {
+      low.y = m_pos.y - m_halfSize.y;
+    }
+    else
+    {
+      low.y = p_other.m_pos.y - p_other.m_halfSize.y;
+    }
+    if (m_pos.x + m_halfSize.x > p_other.m_pos.x + p_other.m_halfSize.x)
+    {
+      high.x = m_pos.x + m_halfSize.x;
+    }
+    else
+    {
+      high.x = p_other.m_pos.x + p_other.m_halfSize.x;
+    }
+    if (m_pos.y + m_halfSize.y > p_other.m_pos.y + p_other.m_halfSize.y)
+    {
+      high.y = m_pos.y + m_halfSize.y;
+    }
+    else
+    {
+      high.y = p_other.m_pos.y + p_other.m_halfSize.y;
+    }
+
+    m_halfSize = high - low;
+    m_halfSize /= 2;
+    m_pos = static_cast<glm::i64vec2>(m_halfSize) + low;
+  }
+
   inline void setCenter(glm::i64vec2 p_pos)
   {
 

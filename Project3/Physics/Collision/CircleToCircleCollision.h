@@ -22,12 +22,12 @@ public:
     CircleShape * circle1 = static_cast<CircleShape *>(p_fix1.shape);
     CircleShape * circle2 = static_cast<CircleShape *>(p_fix2.shape);
 
-    glm::i64vec2 circle1Pos = p_tf1.multiply(circle1->pos);
-    glm::i64vec2 circle2Pos = p_tf2.multiply(circle2->pos);
+    glm::i64vec2 circle1Pos = p_tf1.multiply(circle1->getPos());
+    glm::i64vec2 circle2Pos = p_tf2.multiply(circle2->getPos());
 
     glm::f64vec2 delta = static_cast<glm::f64vec2>(circle2Pos - circle1Pos);
     glm::f64 distance = std::sqrt(glm::dot(delta, delta));
-    glm::f64 limit = circle1->radius + circle2->radius;
+    glm::f64 limit = circle1->getRadius() + circle2->getRadius();
     if (distance > limit)
     {
       return false;
@@ -44,8 +44,8 @@ public:
     p_contact->manifold.penetration = limit - distance;
     p_contact->manifold.pointCount = 1;
     p_contact->manifold.contactPoints[0].contactPoint = p_fix1.object->getPos() + glm::i64vec2(normal * (distance / 2));
-    p_contact->relativeVelocity = (glm::f64vec2)p_fix1.object->getSpeed() + ((glm::f64vec2(circle1->pos) + normal * (glm::f64)circle1->radius) * (glm::f64)p_fix1.object->getRotSpeed())
-                                -((glm::f64vec2)p_fix2.object->getSpeed() + ((glm::f64vec2(circle2->pos) - normal * (glm::f64)circle2->radius) * (glm::f64)p_fix2.object->getRotSpeed()));
+    p_contact->relativeVelocity = (glm::f64vec2)p_fix1.object->getSpeed() + ((glm::f64vec2(circle1->getPos()) + normal * (glm::f64)circle1->getRadius()) * (glm::f64)p_fix1.object->getRotSpeed())
+                                -((glm::f64vec2)p_fix2.object->getSpeed() + ((glm::f64vec2(circle2->getPos()) - normal * (glm::f64)circle2->getRadius()) * (glm::f64)p_fix2.object->getRotSpeed()));
     double speed = glm::length(p_contact->relativeVelocity);
     p_contact->timeOfImpact = p_contact->manifold.penetration / speed;
     return true;

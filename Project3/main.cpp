@@ -46,13 +46,14 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
   float sinCounter = sinf(rand);
 
   object->setRot(0);
-  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() * 5);
+  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() * 3);
   object->setYPos(0);
   object->updateTransform();
   object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
   object->setAsset(p_asset);
   object->setRotSpeed(0);
-  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()), p_objects.size() * OBJTOWORLD / 2));
+  object->setRot(p_objects.size());
+  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()), 0));
   /*
   CircleShape * circleShape = new CircleShape;
   circleShape->pos = glm::i64vec2(0, 0);
@@ -111,12 +112,12 @@ int main(int argc, char ** argv)
   }
 
   Display display(1600, 800, "Screen 1");
-  CameraWorldBased camera(glm::i64vec2(0, 0), glm::i32vec2(1600, 800), OBJTOWORLD * 10, 1);
+  CameraWorldBased camera(glm::i64vec2(0, 0), glm::i32vec2(1600, 800), OBJTOWORLD / 16, 1);
   camera.updateTransform();
   display.setCamera(&camera);
 
   std::shared_ptr<Asset> fighterAsset(new Asset());
-  fighterAsset->setTexture(std::shared_ptr<Texture>(new Texture("./res/fighter.png")));
+  fighterAsset->setTexture(std::shared_ptr<Texture>(new Texture("./res/texture.png")));
   fighterAsset->setMesh(std::shared_ptr<Mesh>(new Mesh(vertices, indices)));
 
   std::vector<Object*> objects;

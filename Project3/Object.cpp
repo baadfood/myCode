@@ -216,8 +216,23 @@ glm::mat4 const & Object::getTransform() const
 
 void Object::updateAabb()
 {
-  m_aabb.setCenter(m_pos);
-  m_aabb.setSize(m_halfSize);
+  if (m_fixtures.empty() == false)
+  {
+    m_aabb.reset();
+    for (auto iter = m_fixtures.begin();
+    iter != m_fixtures.end();
+      iter++)
+    {
+      Fixture * fixture = (*iter);
+      fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
+      m_aabb += fixture->shape->getAabb();
+    }
+  }
+  else
+  {
+    m_aabb.m_pos = m_pos;
+    m_aabb.m_halfSize = m_halfSize;
+  }
 }
 
 AABB const & Object::getAABB() const
@@ -263,12 +278,17 @@ void Object::advance(glm::u64 p_nanos)
   m_physicsTransform.pos = m_pos;
   m_physicsTransform.rot = glm::fvec2(cos(m_rot), sin(m_rot));
 
-  for(auto iter = m_fixtures.begin();
-      iter != m_fixtures.end();
-      iter++)
+  if (m_fixtures.empty() == false)
   {
-    Fixture * fixture = (*iter);
-    fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
+    m_aabb.reset();
+    for (auto iter = m_fixtures.begin();
+    iter != m_fixtures.end();
+      iter++)
+    {
+      Fixture * fixture = (*iter);
+      fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
+      m_aabb += fixture->shape->getAabb();
+    }
   }
 }
 
@@ -280,11 +300,29 @@ std::vector<Fixture*> const & Object::getFixtures() const
 void Object::addFixture(Fixture * p_fixture)
 {
   m_fixtures.push_back(p_fixture);
+  m_aabb.reset();
+  for (auto iter = m_fixtures.begin();
+  iter != m_fixtures.end();
+    iter++)
+  {
+    Fixture * fixture = (*iter);
+    fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
+    m_aabb += fixture->shape->getAabb();
+  }
 }
 
 void Object::removeFixture(Fixture * p_fixture)
 {
   mika::removeOne(m_fixtures, p_fixture);
+  m_aabb.reset();
+  for (auto iter = m_fixtures.begin();
+  iter != m_fixtures.end();
+    iter++)
+  {
+    Fixture * fixture = (*iter);
+    fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
+    m_aabb += fixture->shape->getAabb();
+  }
 }
 
 glm::u32 Object::getTypeId() const

@@ -3,6 +3,7 @@
 
 #include "Object.h"
 #include "Physics/Fixture.h"
+#include "Physics/Shape.h"
 #include "Physics/Manifold.h"
 #include "utils.h"
 
@@ -30,6 +31,9 @@ public:
     glm::f64 obj1RotSpeed = obj1->getRotSpeed();
     glm::f64 obj2RotSpeed = obj2->getRotSpeed();
 
+    glm::i64vec2 shape1Pos = obj1->getPos() + fixtures[0].shape->getPos();
+    glm::i64vec2 shape2Pos = obj2->getPos() + fixtures[1].shape->getPos();
+
     for(unsigned short i = 0; i < manifold.pointCount; ++i)
     {
       // Calculate radii from COM to contact
@@ -37,9 +41,22 @@ public:
       glm::f64vec2 radiiObj2 = (glm::f64vec2)(manifold.contactPoints[i].contactPoint - obj2->getPos());
 
       // Relative velocity
-      glm::f64vec2 velocity = obj2Speed + mika::crossS(obj2RotSpeed, radiiObj2 ) -
-                              obj1Speed - mika::crossS(obj1RotSpeed, radiiObj1 );
+      glm::f64vec2 obj1Vel = obj1Speed + mika::crossS(obj1RotSpeed, radiiObj1);
+      glm::f64vec2 obj2Vel = obj2Speed + mika::crossS(obj2RotSpeed, radiiObj2);
 
+      glm::f64vec2 velocity;
+      bool flipX = false;
+      bool flipY = false;
+      velocity.x = obj2Vel.x - obj1Vel.x;
+      velocity.y = obj2Vel.y - obj1Vel.y;
+      if (shape1Pos.x < shape2Pos.x)
+      {
+        manifold.localNormal.x = -manifold.localNormal.x;
+      }
+      if (shape1Pos.y < shape2Pos.y)
+      {
+        manifold.localNormal.y = -manifold.localNormal.y;
+      }
       // Relative velocity along the normal
       glm::f64 contactVel = glm::dot(velocity, manifold.localNormal);
 

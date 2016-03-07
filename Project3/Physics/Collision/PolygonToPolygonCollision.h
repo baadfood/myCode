@@ -204,8 +204,8 @@ public:
     p_contact->contactFriction = std::sqrt(p_fix1.friction * p_fix2.friction);
     p_contact->contactRestitution = std::sqrt(p_fix1.restitution * p_fix2.restitution);
     p_contact->manifold.type = Manifold::ePolygons;
-    p_contact->relativeVelocity = (glm::f64vec2)p_fix1.object->getSpeed() + ((glm::f64vec2(poly1->pos) + p_contact->manifold.localNormal * p_contact->manifold.penetration) * (glm::f64)p_fix1.object->getRotSpeed())
-                               - ((glm::f64vec2)p_fix2.object->getSpeed() + ((glm::f64vec2(poly2->pos) - p_contact->manifold.localNormal * p_contact->manifold.penetration) * (glm::f64)p_fix2.object->getRotSpeed()));
+    p_contact->relativeVelocity = (glm::f64vec2)p_fix1.object->getSpeed() + ((glm::f64vec2(poly1->getPos()) + p_contact->manifold.localNormal * p_contact->manifold.penetration) * (glm::f64)p_fix1.object->getRotSpeed())
+                               - ((glm::f64vec2)p_fix2.object->getSpeed() + ((glm::f64vec2(poly2->getPos()) - p_contact->manifold.localNormal * p_contact->manifold.penetration) * (glm::f64)p_fix2.object->getRotSpeed()));
     double speed = glm::length(p_contact->relativeVelocity);
     p_contact->timeOfImpact = p_contact->manifold.penetration / speed;
 

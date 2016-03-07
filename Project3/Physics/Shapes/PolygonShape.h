@@ -28,8 +28,8 @@ public:
 
   virtual void computeAabb(AABB & p_aabb, Transform2d const & p_transform)
   {
-    p_aabb.setCenter(p_transform.pos + p_transform.applyRotation(pos));
-    p_aabb.setSize(glm::u64vec2(radius * 1.05, radius * 1.05));
+    p_aabb.setCenter(p_transform.pos + p_transform.applyRotation(m_pos));
+    p_aabb.setSize(glm::u64vec2(m_radius * 1.05, m_radius * 1.05));
   }
   virtual void calculateMassData(MassData & p_massData, glm::float32 p_density)
   {
@@ -72,8 +72,8 @@ public:
   }
   virtual bool TestPoint(const Transform2d& p_transform, const glm::i64vec2 & p_pos) const
   {
-    glm::dvec2 distance = static_cast<glm::dvec2>(p_pos - p_transform.pos + p_transform.applyRotation(pos));
-    return glm::dot(distance, distance) <= radius * radius;
+    glm::dvec2 distance = static_cast<glm::dvec2>(p_pos - p_transform.pos + p_transform.applyRotation(m_pos));
+    return glm::dot(distance, distance) <= m_radius * m_radius;
   }
   virtual bool setVertices(std::vector<glm::f64vec2> const & p_vertices)
   {
@@ -92,7 +92,7 @@ public:
       iter != p_vertices.end();
       iter++)
     {
-      glm::f64 distance = iter->x * iter->y;
+      glm::f64 distance = iter->x * iter->x + iter->y * iter->y;
       if (distance > distanceMax)
       {
         distanceMax = distance;
@@ -111,8 +111,7 @@ public:
       }
     }
 
-    radius = std::sqrt(distanceMax);
-
+    m_radius = std::sqrt(distanceMax);
     unsigned int hull[c_maxVertexCount];
     unsigned int outIndex = 0;
     const unsigned int start = rightBottom - p_vertices.cbegin();
@@ -166,16 +165,16 @@ public:
       vertices[index] = p_vertices[hull[index]];
     }
 
-    unsigned int index1 = vertexCount - 1;
-    for (unsigned int index2 = 0;
-    index2 < vertexCount;
-      index2++)
+    for (unsigned int index1 = 0;
+      index1 < vertexCount;
+      index1++)
     {
+      unsigned int index2 = index1 + 1;
+      if (index2 == vertexCount) index2 = 0;
+
       glm::f64vec2 face = vertices[index2] - vertices[index1];
 
       normals[index1] = glm::normalize(glm::f64vec2(face.y, -face.x));
-
-      index1 = index2;
     }
     return true;
   }
@@ -204,9 +203,6 @@ public:
   uint32_t vertexCount;
   glm::f64vec2 vertices[c_maxVertexCount];
   glm::f64vec2 normals[c_maxVertexCount];
-
-  glm::i64vec2 pos;
-  glm::u64 radius;
 };
 
 #endif

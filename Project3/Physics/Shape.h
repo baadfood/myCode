@@ -17,13 +17,18 @@ public:
     eTypeCount = 4
   };
 
-  Shape()
+  Shape():
+  m_pos(0,0),
+  m_radius(0)
   {
   }
   
   virtual ~Shape()
   {
   }
+
+  glm::i64vec2 getPos() const { return m_pos; }
+  glm::u64 getRadius() const { return m_radius; }
 
   virtual EType getType() { return m_type; }
   virtual AABB const & getAabb() const { return m_aabb; }
@@ -32,6 +37,8 @@ public:
   virtual void calculateMassData(MassData & p_massData, glm::float32 p_density) = 0;
 protected:
 
+  glm::i64vec2 m_pos;
+  glm::u64 m_radius;
   EType m_type;
   AABB m_aabb;
 };
