@@ -19,6 +19,16 @@ public:
   {
   }
 
+  void setPos(glm::i64vec2 p_pos)
+  {
+    m_pos = p_pos;
+  }
+
+  void setRadius(glm::u64 p_radius)
+  {
+    m_radius = p_radius;
+  }
+
   virtual void computeAabb(AABB & p_aabb, Transform2d const & p_transform)
   {
     p_aabb.setCenter(p_transform.pos + p_transform.applyRotation(m_pos));

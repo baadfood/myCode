@@ -160,6 +160,10 @@ QuadTree * QuadTree::addObject(Object * p_object)
       AABB parentAABB(m_boundary);
       parentAABB.m_halfSize *= 2;
       assert(m_boundary.m_halfSize.x != 0);
+      if (m_boundary.m_halfSize.x == 0)
+      {
+        return this;
+      }
 
       switch(direction)
       {

@@ -19,6 +19,11 @@ struct Mesh::Private
   Shader * prevShader;
 };
 
+Mesh::Mesh()
+{
+  d = new Private();
+}
+
 Mesh::Mesh(std::string const & p_filename)
 {
   d = new Private();

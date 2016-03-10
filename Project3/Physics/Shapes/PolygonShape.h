@@ -141,7 +141,7 @@ public:
           nextIndex = index;
         }
 
-        if (cross == 0.0 && vert1.x * vert1.y > vert2.x * vert2.y)
+        if (cross == 0.0 && vert1.x * vert1.y < vert2.x * vert2.y)
         {
           nextIndex = index;
         }

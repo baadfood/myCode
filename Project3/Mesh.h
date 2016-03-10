@@ -12,6 +12,7 @@ class Shader;
 class Mesh
 {
 public:
+  Mesh();
   Mesh(std::vector<Vertex> const & p_vertices, std::vector<unsigned int> p_indices);
   Mesh(std::string const & p_filename);
   virtual ~Mesh();

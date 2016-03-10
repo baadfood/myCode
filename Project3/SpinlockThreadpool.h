@@ -9,7 +9,7 @@
 class SpinlockThreadpool
 {
 public:
-  SpinlockThreadpool(int p_threadCount = 6, int p_taskQueueSize = 200):
+  SpinlockThreadpool(int p_threadCount = 5, int p_taskQueueSize = 200):
   m_taskQueue(p_taskQueueSize)
   {
     setThreadCount(p_threadCount);
@@ -91,7 +91,6 @@ public:
         m_unfinishedTasks.fetch_sub(1);
       }
     }
-    std::cout << "All done?" << std::endl;
   }
 
   void addTask(std::function<void()> * p_task)

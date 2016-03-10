@@ -51,35 +51,35 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
   }*/
 
   object->setRot(0);
-  object->setXPos(0);
-  object->setYPos(-OBJTOWORLD * p_objects.size() * 3);
+  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 100);
+  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 100);
   object->updateTransform();
   object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
   object->setAsset(p_asset);
   object->setRotSpeed(rotspeed);
   object->setRot(p_objects.size());
-  object->setSpeed(glm::i64vec2(0, -sinCounter * OBJTOWORLD * std::sqrt(p_objects.size())));
-  /*
-  CircleShape * circleShape = new CircleShape;
-  circleShape->pos = glm::i64vec2(0, 0);
-  circleShape->radius = OBJTOWORLD;
- */
-  PolygonShape * poly = new PolygonShape;
+  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()*2), -sinCounter * OBJTOWORLD * std::sqrt(p_objects.size()*2)));
+  /**
+  CircleShape * shape = new CircleShape;
+  shape->setPos(glm::i64vec2(0, 0));
+  shape->setRadius(OBJTOWORLD*2);
+  /*/
+  PolygonShape * shape = new PolygonShape;
   std::vector<glm::f64vec2> vertices;
   vertices.resize(4);
   vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
-  vertices[1] = glm::f64vec2(-OBJTOWORLD, OBJTOWORLD);
-  vertices[2] = glm::f64vec2(OBJTOWORLD, -OBJTOWORLD);
+  vertices[1] = glm::f64vec2(-OBJTOWORLD/2, OBJTOWORLD/2);
+  vertices[2] = glm::f64vec2(OBJTOWORLD/2, -OBJTOWORLD/2);
   vertices[3] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
 
-  poly->setVertices(vertices);
-
+  shape->setVertices(vertices);
+  //*/
   Fixture * fixture = new Fixture;
   fixture->density = 0.0000000000000000000001;
   fixture->friction = 0.5;
   fixture->restitution = 1;
   fixture->object = object;
-  fixture->shape = poly;
+  fixture->shape = shape;
   
   object->addFixture(fixture);
   object->updateMass();
@@ -100,9 +100,9 @@ int main(int argc, char ** argv)
 
   std::vector<Vertex> vertices;
 
-  vertices.emplace_back(glm::vec3(-1, 1, 0), glm::vec2(0, 0), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(-0.5, 0.5, 0), glm::vec2(0, 0), glm::vec3(0, 0, -1));
   vertices.emplace_back(glm::vec3(-1, -1, 0), glm::vec2(0, 1), glm::vec3(0, 0, -1));
-  vertices.emplace_back(glm::vec3(1, -1, 0), glm::vec2(1, 1), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(0.5, -0.5, 0), glm::vec2(1, 1), glm::vec3(0, 0, -1));
   vertices.emplace_back(glm::vec3(1, 1, 0), glm::vec2(1, 0), glm::vec3(0, 0, -1));
 
 
@@ -137,7 +137,7 @@ int main(int argc, char ** argv)
   state.displays.push_back(&display);
   state.spatialTree = new QuadTree(aabb);
   for(int index = 0;
-  index < 2;
+  index < 20000;
     index++)
   {
     addObject(objects, fighterAsset, state.spatialTree);

@@ -191,7 +191,7 @@ void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
   }
   for (Contact * contact : contacts)
   {
-    contact->positionCorrection();
+//    contact->positionCorrection();
   }
 }
 
@@ -225,6 +225,8 @@ void PhysicsManager::advance(GameState * p_state)
   d->objectsToUpdate = &p_state->objects;
   d->nanosToAdvance = p_state->ticksAdvanced * 1e6;
 
+  unsigned int startTicks = SDL_GetTicks();
+
   int threadCount = getThreadPool().threadCount();
   for (int thread = 0;
   thread < threadCount;
@@ -235,13 +237,23 @@ void PhysicsManager::advance(GameState * p_state)
   moveObjects();
   getThreadPool().waitAndDoTasks();
   d->currentIndex.store(0);
-  
+
+  unsigned int ticksNow = SDL_GetTicks();
+  // std::cout << "Physicsmanager moved objects in " << ticksNow - startTicks << std::endl;
+  startTicks = ticksNow;
+
+
   for(auto iter = d->objectsToUpdate->begin();
       iter != d->objectsToUpdate->end();
       iter++)
   {
     (*iter)->updateTree();
   }
+
+  ticksNow = SDL_GetTicks();
+  // std::cout << "Physicsmanager updated tree in " << ticksNow - startTicks << std::endl;
+  startTicks = ticksNow;
+
 
   std::vector<std::future<ContactsData *>> tasks;
 
@@ -282,6 +294,11 @@ void PhysicsManager::advance(GameState * p_state)
       }
     }
   }
+
+  ticksNow = SDL_GetTicks();
+  // std::cout << "Physicsmanager got contacts in " << ticksNow - startTicks << std::endl;
+  startTicks = ticksNow;
+
   std::sort(primaries.begin(), primaries.end(), sortPrimaries);
 
   std::vector<Object *> primariesJoined;
@@ -317,8 +334,11 @@ void PhysicsManager::advance(GameState * p_state)
     }
     islands.push_back(island);
   }
+  ticksNow = SDL_GetTicks();
+  // std::cout << "Physicsmanager got islands in " << ticksNow - startTicks << std::endl;
+  startTicks = ticksNow;
 
-  std::cout << "Such islands: " << islands.size() << std::endl;
+  // std::cout << "Such islands: " << islands.size() << std::endl;
   
   for(int island = 0;
       island < islands.size();
@@ -328,6 +348,7 @@ void PhysicsManager::advance(GameState * p_state)
   }
   getThreadPool().waitAndDoTasks();
 
-
-  // is it possible to do multithreaded collision responses?
+  ticksNow = SDL_GetTicks();
+  // std::cout << "Physicsmanager processed islands in " << ticksNow - startTicks << std::endl;
+  startTicks = ticksNow;
 }
