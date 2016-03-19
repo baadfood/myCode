@@ -83,6 +83,7 @@ set(Project3_HDRS
 ./Physics/Collision/CircleToPolygonCollision.h
 ./Physics/Collision/PolygonToPolygonCollision.h
 ./Physics/Contact/CircleContact.h
+./Physics/CollisionIsland.h
 ./Physics/Fixture.h
 ./Physics/ContactFilter.h
 ./Physics/Manifold.h
@@ -110,6 +111,7 @@ set(Project3_HDRS
 ./Spinlock.h
 ./ObjectRenderer.h
 ./PhysicsManager.h
+./SharedPtr.h
 )
 
 set(Project3_INLS./InputHandlers/MoveOnKeyDownHandler.inl

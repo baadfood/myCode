@@ -12,12 +12,14 @@
 #include <vector>
 #include <memory>
 #include "Spinlock.h"
+#include "SharedPtr.h"
 
 class Contact;
 class SpatialTree;
 static const glm::i64 OBJTOWORLD = 2147483648;
 class CameraWorldBased;
 class Fixture;
+class CollisionIsland;
 
 class Object : public Base, public UserInputHandler
 {
@@ -113,9 +115,15 @@ public:
   virtual bool isInCorrectQuadtreeNode() const;
 
   virtual void updateLogic();
-  
+
+  glm::f64 & positionCorrectionPressure();
+
+  CollisionIsland const * getCollisionIsland() const;
+
 private:
   std::vector<std::shared_ptr<UserInputHandler>> m_inputHandlers;
+
+  SharedPtr<CollisionIsland> m_collisionIsland;
 
   std::vector<Fixture*> m_fixtures;
   std::vector<Contact*> m_contacts;
@@ -130,6 +138,8 @@ private:
 
   glm::mat4 m_model;
   glm::u32 m_typeId;
+
+  glm::f64 m_positionCorrectionPressure;
 
   glm::i64vec2 m_pos;
   glm::u64vec2 m_halfSize;

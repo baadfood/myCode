@@ -6,6 +6,9 @@
 #include "utils.h"
 #include "Physics/Shape.h"
 #include "Physics/Contact.h"
+#include "Physics/Manifold.h"
+
+#include "Physics/CollisionIsland.h"
 
 #include <cassert>
 
@@ -20,7 +23,8 @@ m_treeNode(nullptr),
 m_name(p_name),
 m_treeNodeIndex(0),
 m_rotAccel(0),
-m_accel(0,0)
+m_accel(0,0),
+m_positionCorrectionPressure(0)
 {
 }
 
@@ -30,24 +34,25 @@ Object::~Object()
 
 void Object::getConnectedObjects(std::vector<Object*> & p_connectedObjects)
 {
+  if(m_collisionIsland == nullptr
+  || m_collisionIsland.isNull())
+  {
+    m_collisionIsland = CollisionIsland::newCollisionIsland();
+  }
   p_connectedObjects.reserve(p_connectedObjects.size() + m_contacts.size());
   for (Contact * contact : m_contacts)
   {
-    auto iter = p_connectedObjects.begin();
-    for(;
-        iter != p_connectedObjects.end();
-        iter++)
+    Object * other = contact->fixtures[1].object != this ? contact->fixtures[1].object : contact->fixtures[0].object;
+    if (other->m_collisionIsland == nullptr
+    || other->m_collisionIsland.isNull())
     {
-      if(*iter == contact->fixtures[1].object)
-      {
-        break;
-      }
+      other->m_collisionIsland = m_collisionIsland;
+      p_connectedObjects.push_back(other);
+      other->getConnectedObjects(p_connectedObjects);
     }
-    
-    if(iter == p_connectedObjects.end())
+    else if (other->m_collisionIsland != m_collisionIsland)
     {
-      p_connectedObjects.push_back(contact->fixtures[1].object);
-      contact->fixtures[1].object->getConnectedObjects(p_connectedObjects);
+      other->m_collisionIsland.redirect(m_collisionIsland);
     }
   }
 }
@@ -56,7 +61,19 @@ void Object::getConnectedObjects(std::vector<Object*> & p_connectedObjects)
 void Object::addContact(Contact * p_manifold)
 {
   m_contacts.push_back(p_manifold);
+
+  Object * other = p_manifold->fixtures[1].object;
+  if (other == this)
+  {
+    other = p_manifold->fixtures[0].object;
+  }
 }
+
+CollisionIsland const * Object::getCollisionIsland() const
+{
+  return m_collisionIsland.get();
+}
+
 
 std::vector<Contact*> const & Object::getContacts()
 {
@@ -125,6 +142,11 @@ std::shared_ptr<Asset> Object::getAsset()
 void Object::moveBy(glm::i64vec2 const & p_pos)
 {
   m_pos += p_pos;
+/*  if (m_pos.x < -922337177244012441
+  ||  m_pos.y < -922337177244012441)
+  {
+    std::cout << "I'm far off\n";
+  }*/
 }
 
 void Object::moveTo(glm::i64vec2 const & p_pos)
@@ -251,6 +273,12 @@ void Object::updateLogic()
 
 }
 
+glm::f64 & Object::positionCorrectionPressure()
+{
+  return m_positionCorrectionPressure;
+}
+
+
 void Object::handleLostFocus(SDL_Event const * p_event)
 {
 
@@ -259,7 +287,8 @@ void Object::handleLostFocus(SDL_Event const * p_event)
 void Object::advance(glm::u64 p_nanos)
 {
   double seconds = double(p_nanos) / 1e9;
-  
+  m_positionCorrectionPressure /= pow(seconds/8 + 1, 2);
+
   m_rot += m_rotSpeed * seconds;
   m_rot += m_rotAccel * pow(seconds,2) / 2;
   m_rotSpeed += m_rotAccel * seconds;
@@ -273,7 +302,6 @@ void Object::advance(glm::u64 p_nanos)
   m_pos.y += m_accel.y * pow(seconds,2) / 2;
   m_speed.x += m_accel.x * seconds;
   m_speed.y += m_accel.y * seconds;
-
 
   m_physicsTransform.pos = m_pos;
   m_physicsTransform.rot = glm::fvec2(cos(m_rot), sin(m_rot));

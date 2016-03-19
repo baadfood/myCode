@@ -10,6 +10,7 @@
 #include "Physics/Shape.h"
 #include "Physics/Collision/CircleToCircleCollision.h"
 #include "Physics/Collision/PolygonToPolygonCollision.h"
+#include "Physics/CollisionIsland.h"
 #include "QuadTree.h"
 
 #include <atomic>
@@ -104,10 +105,20 @@ PhysicsManager::ContactsData * PhysicsManager::getContacts()
       Object * currentObject = d->objectsToUpdate->at(currentIndex);
       currentObject->getTreeNode()->getObjectsIntersected(currentObject->getAABB(), objectCollisions);
       bool firstCollision = true;
+      std::vector<Contact*> const & contacts = currentObject->getContacts();
       for (Object * obj : objectCollisions)
       {
         if (currentObject < obj)
         {
+          for (Contact const * contact : contacts)
+          {
+            if(contact->fixtures[1].object == obj
+            || contact->fixtures[0].object == obj)
+            {
+              // already colliding
+              continue;
+            }
+          }
           if (checkCollision(currentObject, obj, retval->contacts))
           {
             if (firstCollision)
@@ -191,7 +202,11 @@ void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
   }
   for (Contact * contact : contacts)
   {
-//    contact->positionCorrection();
+    contact->positionCorrectionPre();
+  }
+  for (Contact * contact : contacts)
+  {
+     contact->positionCorrection();
   }
 }
 
@@ -318,6 +333,48 @@ void PhysicsManager::advance(GameState * p_state)
 
   std::vector<std::vector<Object*>> islands;
 
+  for(Object * currentObj : primariesJoined)
+  {
+    if (currentObj->getCollisionIsland() == nullptr)
+    {
+      std::vector<Object*> island;
+      island.push_back(currentObj);
+      island.front()->getConnectedObjects(island);
+
+      islands.push_back(island);
+    }
+  }
+
+  std::vector<std::vector<Object*>> islands2;
+
+  if (islands.size() > 1)
+  {
+    auto prevIter = islands.begin();
+    for (auto iter = islands.begin();
+         iter != islands.end();
+      )
+    {
+      CollisionIsland const * mainIsland = iter->at(0)->getCollisionIsland();
+      for (auto iter2 = mainIsland->connectedIslands.begin();
+      iter2 != mainIsland->connectedIslands.end();
+        iter2++)
+      {
+        auto iter3 = iter;
+        ++iter3;
+        for (;
+        iter3 != islands.end();
+          iter3++)
+        {
+          if (iter3->at(0)->getCollisionIsland() == (*iter2))
+          {
+            iter->insert(iter->end(), iter3->begin(), iter3->end());
+          }
+        }
+      }
+    }
+  }
+
+  /*
   while(primariesJoined.empty() == false)
   {
     std::vector<Object*> island;
@@ -334,6 +391,12 @@ void PhysicsManager::advance(GameState * p_state)
     }
     islands.push_back(island);
   }
+/*
+  std::vector<std::vector<Object*>> islands;
+
+  CollisionIsland::sortObjects(islands, *(d->objectsToUpdate));
+  */
+
   ticksNow = SDL_GetTicks();
   // std::cout << "Physicsmanager got islands in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;

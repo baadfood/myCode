@@ -22,6 +22,7 @@
 #include "Physics/Collision/Collision.h"
 #include "Physics/Shapes/CircleShape.h"
 #include "Physics/Shapes/PolygonShape.h"
+#include "SharedPtr.h"
 
 //FILE _iob[] = { *stdin, *stdout, *stderr };
 #include <SDL.h>
@@ -77,7 +78,7 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
   Fixture * fixture = new Fixture;
   fixture->density = 0.0000000000000000000001;
   fixture->friction = 0.5;
-  fixture->restitution = 1;
+  fixture->restitution = 0.3;
   fixture->object = object;
   fixture->shape = shape;
   
@@ -105,6 +106,14 @@ int main(int argc, char ** argv)
   vertices.emplace_back(glm::vec3(0.5, -0.5, 0), glm::vec2(1, 1), glm::vec3(0, 0, -1));
   vertices.emplace_back(glm::vec3(1, 1, 0), glm::vec2(1, 0), glm::vec3(0, 0, -1));
 
+  int ai = 1;
+  int bi = 2;
+
+  SharedPtr<int> a(&ai);
+  SharedPtr<int> b(a);
+  a = &bi;
+
+
 
   unsigned int indics[] = { 0, 1, 2,
     0, 2, 3
@@ -130,14 +139,14 @@ int main(int argc, char ** argv)
 
   AABB aabb;
   aabb.setCenter(glm::i64vec2(0, 0));
-  aabb.setSize(glm::u64vec2(67108864, 67108864));
+  aabb.setSize(glm::u64vec2(std::numeric_limits<glm::u64>::max() / 16, std::numeric_limits<glm::u64>::max() / 16));
 
   GameState state;
   state.focusedObject = nullptr;
   state.displays.push_back(&display);
   state.spatialTree = new QuadTree(aabb);
   for(int index = 0;
-  index < 20000;
+  index < 20;
     index++)
   {
     addObject(objects, fighterAsset, state.spatialTree);

@@ -21,7 +21,9 @@ public:
   glm::f64 contactRestitution;
   glm::f64vec2 relativeVelocity;
 
-  
+  glm::f64 posCorrection;
+  glm::f64vec2 posCorrectionVec;
+
   void applyImpulse()
   {
     Object * obj1 = fixtures[0].object;
@@ -58,8 +60,6 @@ public:
         return;
       }
 
-
-
       glm::f64 raCross1 = mika::cross(radiiObj1, manifold.localNormal);
       glm::f64 raCross2 = mika::cross(radiiObj2, manifold.localNormal);
       glm::f64 invMassSum = obj1->getInvMass() + obj2->getInvMass() + raCross1 * raCross1 * obj1->getInvInertia() + raCross2 * raCross2 * obj2->getInvInertia();
@@ -68,6 +68,13 @@ public:
       glm::f64 impulseScalar = -(1.0f + contactRestitution) * contactVel;
       impulseScalar /= invMassSum;
       impulseScalar /= (glm::f64)manifold.pointCount;
+
+      static glm::f64 biggestImpulseScalar = 0;
+      if (impulseScalar > biggestImpulseScalar)
+      {
+        biggestImpulseScalar = impulseScalar;
+        std::cout << "New biggest impulse " << impulseScalar << std::endl;
+      }
 
       // Apply impulse
       glm::f64vec2 impulse = manifold.localNormal * impulseScalar;
@@ -106,17 +113,36 @@ public:
     }
   }
 
-  void positionCorrection()
+  void positionCorrectionPre()
   {
-    const float c_slop = 0.1;
-    const float c_correctionAmount = 0.4;
+    const float c_slop = OBJTOWORLD/16;
+    const float c_correctionAmount = 0.5;
     Object * obj1 = fixtures[0].object;
     Object * obj2 = fixtures[1].object;
 
-    glm::f64vec2 correction = (std::max(manifold.penetration - c_slop, 0.0) / (obj1->getInvMass() + obj2->getInvMass())) * c_correctionAmount * manifold.localNormal;
+    posCorrectionVec = (std::max(manifold.penetration - c_slop, 0.0) / (obj1->getInvMass() + obj2->getInvMass())) * c_correctionAmount * manifold.localNormal;
 
-    obj1->moveBy(-correction * obj1->getInvMass());
-    obj2->moveBy(correction * obj2->getInvMass());
+    posCorrection = glm::length(posCorrectionVec);
+
+    obj1->positionCorrectionPressure() += posCorrection;
+    obj2->positionCorrectionPressure() += posCorrection;
+  }
+
+  void positionCorrection()
+  {
+    if (posCorrection <= 0.0)
+    {
+      return;
+    }
+    glm::f64 pressure1 = fixtures[0].object->positionCorrectionPressure();
+    glm::f64 pressure2 = fixtures[1].object->positionCorrectionPressure();
+
+    glm::f64 totalPressure =  pressure1 + pressure2;
+    glm::f64 pressureDif1 = (pressure2 / totalPressure) * 2;
+    glm::f64 pressureDif2 = (pressure1 / totalPressure) * 2;
+
+    fixtures[0].object->moveBy(-posCorrectionVec * fixtures[0].object->getInvMass() * pressureDif1);
+    fixtures[1].object->moveBy(posCorrectionVec * fixtures[1].object->getInvMass() / pressureDif1);
   }
 };
 

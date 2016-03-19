@@ -59,7 +59,7 @@ void RenderManager::advance(GameState * p_state)
     static int objectsInScreen = 0;
     if(objectsInScreen != objectsToDraw.size())
     {
-      std::cout << "Objects in screen: " << objectsToDraw.size();
+//      std::cout << "Objects in screen: " << objectsToDraw.size();
       objectsInScreen = objectsToDraw.size();
     }
     // group objects by renderer
