@@ -62,8 +62,7 @@ bool GameManager::progressFrame()
     (*iter)->advance(d->state);
     sstream << (*iter)->getName() << " ticks: " << SDL_GetTicks() - ticks << std::endl;
   }
-//  system("cls");
-//  std::cout << sstream.str();
+  std::cout << sstream.str();
   
   return true;
 }

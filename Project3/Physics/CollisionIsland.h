@@ -24,7 +24,18 @@ public:
 //    s_buffer.push(p_island);
   }
 
+  CollisionIsland()
+  {
+
+  }
+
+  ~CollisionIsland()
+  {
+  }
+
   std::set<CollisionIsland*> connectedIslands;
+
+  std::vector<Object *> objects;
 };
 
 #endif

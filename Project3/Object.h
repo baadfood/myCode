@@ -118,7 +118,9 @@ public:
 
   glm::f64 & positionCorrectionPressure();
 
-  CollisionIsland const * getCollisionIsland() const;
+  CollisionIsland * getCollisionIsland();
+
+  void updateIsland();
 
 private:
   std::vector<std::shared_ptr<UserInputHandler>> m_inputHandlers;

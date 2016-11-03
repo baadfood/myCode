@@ -14,6 +14,7 @@
 #include "QuadTree.h"
 
 #include <atomic>
+#include <map>
 
 
 struct PhysicsManager::Private
@@ -110,15 +111,15 @@ PhysicsManager::ContactsData * PhysicsManager::getContacts()
       {
         if (currentObject < obj)
         {
-          for (Contact const * contact : contacts)
+/*          for (Contact const * contact : contacts)
           {
-            if(contact->fixtures[1].object == obj
-            || contact->fixtures[0].object == obj)
+            if (contact->fixtures[1].object == obj
+              || contact->fixtures[0].object == obj)
             {
               // already colliding
               continue;
             }
-          }
+          }*/
           if (checkCollision(currentObject, obj, retval->contacts))
           {
             if (firstCollision)
@@ -183,6 +184,7 @@ namespace
 
 void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
 {
+  unsigned int startTicks = SDL_GetTicks();
   std::vector<Contact *> contacts;
   contacts.reserve(p_island.size() * 2);
 
@@ -195,18 +197,28 @@ void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
       contacts.push_back(contact);
     }
   }
+  unsigned int ticksNow = SDL_GetTicks();
+  std::cout << "Physicsmanager Got island objects " << ticksNow - startTicks << std::endl;
+  startTicks = ticksNow;
+
   std::sort(contacts.begin(), contacts.end(), toiSort);
+  ticksNow = SDL_GetTicks();
+  std::cout << "Physicsmanager sorted island objects " << ticksNow - startTicks << std::endl;
+  startTicks = ticksNow;
   for(Contact * contact : contacts)
   {
     contact->applyImpulse();
   }
+  ticksNow = SDL_GetTicks();
+  std::cout << "Physicsmanager applied impulses to objects" << ticksNow - startTicks << std::endl;
+  startTicks = ticksNow;
   for (Contact * contact : contacts)
   {
-    contact->positionCorrectionPre();
+//    contact->positionCorrectionPre();
   }
   for (Contact * contact : contacts)
   {
-     contact->positionCorrection();
+//     contact->positionCorrection();
   }
 }
 
@@ -236,11 +248,11 @@ namespace
 
 void PhysicsManager::advance(GameState * p_state)
 {
+  unsigned int startTicks = SDL_GetTicks();
   d->currentIndex.store(0);
   d->objectsToUpdate = &p_state->objects;
   d->nanosToAdvance = p_state->ticksAdvanced * 1e6;
 
-  unsigned int startTicks = SDL_GetTicks();
 
   int threadCount = getThreadPool().threadCount();
   for (int thread = 0;
@@ -254,7 +266,7 @@ void PhysicsManager::advance(GameState * p_state)
   d->currentIndex.store(0);
 
   unsigned int ticksNow = SDL_GetTicks();
-  // std::cout << "Physicsmanager moved objects in " << ticksNow - startTicks << std::endl;
+  std::cout << "Physicsmanager moved objects in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
 
 
@@ -266,7 +278,7 @@ void PhysicsManager::advance(GameState * p_state)
   }
 
   ticksNow = SDL_GetTicks();
-  // std::cout << "Physicsmanager updated tree in " << ticksNow - startTicks << std::endl;
+  std::cout << "Physicsmanager updated tree in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
 
 
@@ -282,6 +294,7 @@ void PhysicsManager::advance(GameState * p_state)
   std::vector<std::vector<Object *> > primaries;
   std::vector<Contact *> contacts;
   ContactsData * contactData = nullptr;
+  getThreadPool().waitAndDoTasks();
   while (tasks.empty() == false)
   {
     for (auto iter = tasks.begin();
@@ -311,9 +324,41 @@ void PhysicsManager::advance(GameState * p_state)
   }
 
   ticksNow = SDL_GetTicks();
-  // std::cout << "Physicsmanager got contacts in " << ticksNow - startTicks << std::endl;
+  std::cout << "Physicsmanager got contacts2 in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
+  for (Object* object : *d->objectsToUpdate)
+  {
+    object->updateIsland();
+  }
 
+  std::set<CollisionIsland *> islands;
+  for (Object* object : *d->objectsToUpdate)
+  {
+    CollisionIsland * island = object->getCollisionIsland();
+    if (island)
+    {
+      islands.insert(island);
+    }
+  }
+  /*
+  for (std::vector<Object*> group : primaries)
+  {
+    for (Object* object : group)
+    {
+      object->updateIsland();
+    }
+  }
+
+  std::set<CollisionIsland *> islands;
+  for (std::vector<Object*> group : primaries)
+  {
+    for (Object* object : group)
+    {
+      islands.insert(object->getCollisionIsland());
+    }
+  }
+  */
+  /*
   std::sort(primaries.begin(), primaries.end(), sortPrimaries);
 
   std::vector<Object *> primariesJoined;
@@ -345,6 +390,9 @@ void PhysicsManager::advance(GameState * p_state)
     }
   }
 
+
+  */
+  /*
   std::vector<std::vector<Object*>> islands2;
 
   if (islands.size() > 1)
@@ -373,7 +421,7 @@ void PhysicsManager::advance(GameState * p_state)
       }
     }
   }
-
+  */
   /*
   while(primariesJoined.empty() == false)
   {
@@ -398,20 +446,25 @@ void PhysicsManager::advance(GameState * p_state)
   */
 
   ticksNow = SDL_GetTicks();
-  // std::cout << "Physicsmanager got islands in " << ticksNow - startTicks << std::endl;
+   std::cout << "Physicsmanager got islands in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
 
-  // std::cout << "Such islands: " << islands.size() << std::endl;
+//   std::cout << "Such islands: " << islands.size() << std::endl;
   
-  for(int island = 0;
-      island < islands.size();
+  for(auto island = islands.begin();
+      island != islands.end();
       island++)
   {
-    getThreadPool().push(std::bind(&PhysicsManager::processIsland, this, islands.at(island)));
+/*    if ((*island)->objects.size() > 200)
+    {
+      std::cout << "OMG TOO MANY OBJECTS\n";
+    }
+    std::cout << "Such island: " << (*island)->objects.size() << std::endl;*/
+    getThreadPool().push(std::bind(&PhysicsManager::processIsland, this, (*island)->objects));
   }
   getThreadPool().waitAndDoTasks();
 
   ticksNow = SDL_GetTicks();
-  // std::cout << "Physicsmanager processed islands in " << ticksNow - startTicks << std::endl;
+   std::cout << "Physicsmanager processed islands in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
 }

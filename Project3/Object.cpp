@@ -39,7 +39,7 @@ void Object::getConnectedObjects(std::vector<Object*> & p_connectedObjects)
   {
     m_collisionIsland = CollisionIsland::newCollisionIsland();
   }
-  p_connectedObjects.reserve(p_connectedObjects.size() + m_contacts.size());
+
   for (Contact * contact : m_contacts)
   {
     Object * other = contact->fixtures[1].object != this ? contact->fixtures[1].object : contact->fixtures[0].object;
@@ -47,8 +47,7 @@ void Object::getConnectedObjects(std::vector<Object*> & p_connectedObjects)
     || other->m_collisionIsland.isNull())
     {
       other->m_collisionIsland = m_collisionIsland;
-      p_connectedObjects.push_back(other);
-      other->getConnectedObjects(p_connectedObjects);
+//      other->getConnectedObjects(p_connectedObjects);
     }
     else if (other->m_collisionIsland != m_collisionIsland)
     {
@@ -57,19 +56,81 @@ void Object::getConnectedObjects(std::vector<Object*> & p_connectedObjects)
   }
 }
 
+void Object::updateIsland()
+{
+  if (m_contacts.empty())
+  {
+    return;
+  }
+
+  if (m_collisionIsland == nullptr
+    || m_collisionIsland.isNull())
+  {
+    bool set = false;
+    for (Contact * contact : m_contacts)
+    {
+      Object * other = contact->fixtures[1].object != this ? contact->fixtures[1].object : contact->fixtures[0].object;
+      if (other->m_collisionIsland != nullptr
+        && other->m_collisionIsland.isNull() == false)
+      {
+        set = true;
+        m_collisionIsland = other->m_collisionIsland;
+        break;
+      }
+    }
+
+    if (!set)
+    {
+      m_collisionIsland = CollisionIsland::newCollisionIsland();
+//      std::cout << this << " New collision island " << m_collisionIsland.get() << " : " << std::endl;
+    }
+    m_collisionIsland.get()->objects.push_back(this);
+  }
+
+  for (Contact * contact : m_contacts)
+  {
+    Object * other = contact->fixtures[1].object != this ? contact->fixtures[1].object : contact->fixtures[0].object;
+    m_collisionIsland.get()->objects.reserve(m_collisionIsland.get()->objects.size() + m_contacts.size());
+    if (other->m_collisionIsland == nullptr
+      || other->m_collisionIsland.isNull())
+    {
+      other->m_collisionIsland = m_collisionIsland;
+//      std::cout << this << " Single add " << m_collisionIsland.get() << " : " << other << std::endl;
+      m_collisionIsland.get()->objects.push_back(other);
+//      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
+    }
+    else if (other->m_collisionIsland.get() != m_collisionIsland.get())
+    {
+//      std::cout << this << " Merge add " << m_collisionIsland.get() << " : " << other->m_collisionIsland.get() << " : " << other << std::endl;
+      m_collisionIsland.get()->objects.insert(m_collisionIsland.get()->objects.end(), other->m_collisionIsland.get()->objects.begin(), other->m_collisionIsland.get()->objects.end());
+//      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
+      other->m_collisionIsland.redirect(m_collisionIsland);
+/*      for (auto object : m_collisionIsland.get()->objects)
+      {
+        if (object->m_collisionIsland.get() != m_collisionIsland.get())
+        {
+          std::cout << "WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n";
+        }
+      }*/
+//      other->updateIsland();
+    }
+  }
+}
+
 
 void Object::addContact(Contact * p_manifold)
 {
   m_contacts.push_back(p_manifold);
-
+/*
   Object * other = p_manifold->fixtures[1].object;
   if (other == this)
   {
     other = p_manifold->fixtures[0].object;
   }
+*/
 }
 
-CollisionIsland const * Object::getCollisionIsland() const
+CollisionIsland * Object::getCollisionIsland()
 {
   return m_collisionIsland.get();
 }
@@ -83,6 +144,7 @@ std::vector<Contact*> const & Object::getContacts()
 void Object::clearContacts()
 {
   m_contacts.clear();
+  m_collisionIsland.reset();
 }
 
 Transform2d const & Object::getTransform2d() const

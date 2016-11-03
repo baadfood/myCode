@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SpinlockThreadpool.h"
+#include <thread_pool\thread_pool.hpp>
 #include <glm/glm.hpp>
 #include <SDL.h>
 #include <utility>
@@ -15,7 +15,7 @@ inline bool multiplication_is_safe(T a, T b)
 }
 
 
-SpinlockThreadpool & getThreadPool();
+ThreadPool & getThreadPool();
 
 namespace mika
 {
@@ -36,7 +36,7 @@ namespace mika
       }
     }
     
-    std::cout << "Duplicate count: " << duplicates << std::endl;
+//    std::cout << "Duplicate count: " << duplicates << std::endl;
     
     return duplicates == 0;
   }

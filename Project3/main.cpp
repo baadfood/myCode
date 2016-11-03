@@ -77,11 +77,119 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
   //*/
   Fixture * fixture = new Fixture;
   fixture->density = 0.0000000000000000000001;
-  fixture->friction = 0.5;
-  fixture->restitution = 0.3;
+  fixture->friction = 0;
+  fixture->restitution = 1;
   fixture->object = object;
   fixture->shape = shape;
   
+  object->addFixture(fixture);
+  object->updateMass();
+
+  tree->addObject(object);
+  p_objects.push_back(object);
+}
+
+void addObject1(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset, SpatialTree * tree)
+{
+  Object * object = new Object();
+
+  double power = 4;
+
+  double rand = fRand(0, 2 * 3.1415926);
+
+  float cosCounter = cosf(rand);
+  float sinCounter = sinf(rand);
+  float rotspeed = 0;
+  /*if (p_objects.size() == 0)
+  {
+  rotspeed = 31.415926;
+  }*/
+
+  object->setRot(0);
+  object->setXPos(OBJTOWORLD * 2);
+  object->setYPos(OBJTOWORLD);
+  object->updateTransform();
+  object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
+  object->setAsset(p_asset);
+  object->setRotSpeed(rotspeed);
+  object->setRot(p_objects.size());
+  object->setSpeed(glm::i64vec2(0, 0));
+  /**
+  CircleShape * shape = new CircleShape;
+  shape->setPos(glm::i64vec2(0, 0));
+  shape->setRadius(OBJTOWORLD);
+  /*/
+  PolygonShape * shape = new PolygonShape;
+  std::vector<glm::f64vec2> vertices;
+  vertices.resize(4);
+  vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
+  vertices[1] = glm::f64vec2(-OBJTOWORLD / 2, OBJTOWORLD / 2);
+  vertices[2] = glm::f64vec2(OBJTOWORLD / 2, -OBJTOWORLD / 2);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
+
+  shape->setVertices(vertices);
+  //*/
+  Fixture * fixture = new Fixture;
+  fixture->density = 0.0000000000000000000001;
+  fixture->friction = 0.5;
+  fixture->restitution = 1;
+  fixture->object = object;
+  fixture->shape = shape;
+
+  object->addFixture(fixture);
+  object->updateMass();
+
+  tree->addObject(object);
+  p_objects.push_back(object);
+}
+
+void addObject2(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset, SpatialTree * tree)
+{
+  Object * object = new Object();
+
+  double power = 4;
+
+  double rand = fRand(0, 2 * 3.1415926);
+
+  float cosCounter = cosf(rand);
+  float sinCounter = sinf(rand);
+  float rotspeed = 0;
+  /*if (p_objects.size() == 0)
+  {
+  rotspeed = 31.415926;
+  }*/
+
+  object->setRot(0);
+  object->setXPos(-OBJTOWORLD * 2);
+  object->setYPos(0);
+  object->updateTransform();
+  object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
+  object->setAsset(p_asset);
+  object->setRotSpeed(rotspeed);
+  object->setRot(p_objects.size());
+  object->setSpeed(glm::i64vec2(OBJTOWORLD*2, 0));
+  /**
+  CircleShape * shape = new CircleShape;
+  shape->setPos(glm::i64vec2(0, 0));
+  shape->setRadius(OBJTOWORLD);
+  /*/
+  PolygonShape * shape = new PolygonShape;
+  std::vector<glm::f64vec2> vertices;
+  vertices.resize(4);
+  vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
+  vertices[1] = glm::f64vec2(-OBJTOWORLD / 2, OBJTOWORLD / 2);
+  vertices[2] = glm::f64vec2(OBJTOWORLD / 2, -OBJTOWORLD / 2);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
+
+  shape->setVertices(vertices);
+  //*/
+  Fixture * fixture = new Fixture;
+  fixture->density = 0.0000000000000000000001;
+  fixture->friction = 0.5;
+  fixture->restitution = 1;
+  fixture->object = object;
+  fixture->shape = shape;
+
   object->addFixture(fixture);
   object->updateMass();
 
@@ -145,13 +253,17 @@ int main(int argc, char ** argv)
   state.focusedObject = nullptr;
   state.displays.push_back(&display);
   state.spatialTree = new QuadTree(aabb);
-  for(int index = 0;
-  index < 20;
+/*  for(int index = 0;
+  index < 13000;
     index++)
   {
     addObject(objects, fighterAsset, state.spatialTree);
     state.spatialTree = state.spatialTree->top();
-  }
+  }*/
+  addObject1(objects, fighterAsset, state.spatialTree);
+  state.spatialTree = state.spatialTree->top();
+  addObject2(objects, fighterAsset, state.spatialTree);
+  state.spatialTree = state.spatialTree->top();
 
   state.objects = objects;
 

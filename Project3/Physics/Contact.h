@@ -85,7 +85,8 @@ public:
       if (glm::length(t) == 0)
       {
         // HEADSHOT, going directly along the normal.
-        t = velocity;
+        // This means no tangential velocity.
+        return;
       }
       t = glm::normalize(t);
 
