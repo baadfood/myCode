@@ -97,21 +97,26 @@ void Object::updateIsland()
       other->m_collisionIsland = m_collisionIsland;
 //      std::cout << this << " Single add " << m_collisionIsland.get() << " : " << other << std::endl;
       m_collisionIsland.get()->objects.push_back(other);
-//      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
+      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
     }
     else if (other->m_collisionIsland.get() != m_collisionIsland.get())
     {
 //      std::cout << this << " Merge add " << m_collisionIsland.get() << " : " << other->m_collisionIsland.get() << " : " << other << std::endl;
       m_collisionIsland.get()->objects.insert(m_collisionIsland.get()->objects.end(), other->m_collisionIsland.get()->objects.begin(), other->m_collisionIsland.get()->objects.end());
-//      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
-      other->m_collisionIsland.redirect(m_collisionIsland);
+      for (auto object : other->m_collisionIsland.get()->objects)
+      {
+        object->m_collisionIsland = m_collisionIsland;
+      }
+      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
+//      other->m_collisionIsland.redirect(m_collisionIsland); This didn't work
 /*      for (auto object : m_collisionIsland.get()->objects)
       {
         if (object->m_collisionIsland.get() != m_collisionIsland.get())
         {
-          std::cout << "WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n";
+          std::cout << object << " Wrong collision island " << object->m_collisionIsland.get() << std::endl;
         }
-      }*/
+      }
+*/
 //      other->updateIsland();
     }
   }

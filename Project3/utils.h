@@ -1,6 +1,6 @@
 #pragma once
 
-#include <thread_pool\thread_pool.hpp>
+#include "SpinlockThreadpool.h"
 #include <glm/glm.hpp>
 #include <SDL.h>
 #include <utility>
@@ -15,7 +15,7 @@ inline bool multiplication_is_safe(T a, T b)
 }
 
 
-ThreadPool & getThreadPool();
+SpinlockThreadpool & getThreadPool();
 
 namespace mika
 {

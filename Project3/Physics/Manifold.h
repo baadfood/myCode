@@ -22,7 +22,8 @@ public:
   enum EManifoldType
   {
     eCircles,
-    ePolygons
+    ePolygons,
+    eCircleToPolygon
   };
 
   static Manifold * newManifold()

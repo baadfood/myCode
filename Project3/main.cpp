@@ -52,8 +52,8 @@ void addObject(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset,
   }*/
 
   object->setRot(0);
-  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 100);
-  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 100);
+  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 2);
+  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 2);
   object->updateTransform();
   object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
   object->setAsset(p_asset);
@@ -130,7 +130,7 @@ void addObject1(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset
   shape->setVertices(vertices);
   //*/
   Fixture * fixture = new Fixture;
-  fixture->density = 0.0000000000000000000001;
+  fixture->density = 0.0000000001;
   fixture->friction = 0.5;
   fixture->restitution = 1;
   fixture->object = object;
@@ -184,7 +184,7 @@ void addObject2(std::vector<Object*> & p_objects, std::shared_ptr<Asset> p_asset
   shape->setVertices(vertices);
   //*/
   Fixture * fixture = new Fixture;
-  fixture->density = 0.0000000000000000000001;
+  fixture->density = 0.0000000001;
   fixture->friction = 0.5;
   fixture->restitution = 1;
   fixture->object = object;
@@ -253,18 +253,19 @@ int main(int argc, char ** argv)
   state.focusedObject = nullptr;
   state.displays.push_back(&display);
   state.spatialTree = new QuadTree(aabb);
-/*  for(int index = 0;
-  index < 13000;
+//*
+  for(int index = 0;
+  index < 10000;
     index++)
   {
     addObject(objects, fighterAsset, state.spatialTree);
     state.spatialTree = state.spatialTree->top();
-  }*/
+  }/*/
   addObject1(objects, fighterAsset, state.spatialTree);
   state.spatialTree = state.spatialTree->top();
   addObject2(objects, fighterAsset, state.spatialTree);
   state.spatialTree = state.spatialTree->top();
-
+//*/
   state.objects = objects;
 
   state.spatialTree = state.spatialTree->top();

@@ -10,6 +10,8 @@
 #include "Physics/Shape.h"
 #include "Physics/Collision/CircleToCircleCollision.h"
 #include "Physics/Collision/PolygonToPolygonCollision.h"
+#include "Physics/Collision/CircleToPolygonCollision.h"
+#include "Physics/Collision/InvertCollision.h"
 #include "Physics/CollisionIsland.h"
 #include "QuadTree.h"
 
@@ -38,6 +40,8 @@ d(new Private())
   d->name = "PhysicsManager";
   d->collisionDetector.registerCollisionHandler(Shape::eCircle, Shape::eCircle, new CircleToCircleCollision);
   d->collisionDetector.registerCollisionHandler(Shape::ePolygon, Shape::ePolygon, new PolygonToPolygonCollision);
+  d->collisionDetector.registerCollisionHandler(Shape::eCircle, Shape::ePolygon, new CircleToPolygonCollision);
+  d->collisionDetector.registerCollisionHandler(Shape::ePolygon, Shape::eCircle, new InvertCollision(new(CircleToPolygonCollision)));
 }
 
 PhysicsManager::~PhysicsManager()
@@ -83,7 +87,7 @@ bool PhysicsManager::checkCollision(Object * p_object1, Object * p_object2, std:
 PhysicsManager::ContactsData * PhysicsManager::getContacts()
 {
   int size = d->objectsToUpdate->size();
-  int blocksize = size / 800;
+  int blocksize = size / 80;
   if(blocksize == 0)
   {
     blocksize = size;
@@ -184,7 +188,6 @@ namespace
 
 void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
 {
-  unsigned int startTicks = SDL_GetTicks();
   std::vector<Contact *> contacts;
   contacts.reserve(p_island.size() * 2);
 
@@ -197,21 +200,11 @@ void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
       contacts.push_back(contact);
     }
   }
-  unsigned int ticksNow = SDL_GetTicks();
-  std::cout << "Physicsmanager Got island objects " << ticksNow - startTicks << std::endl;
-  startTicks = ticksNow;
-
   std::sort(contacts.begin(), contacts.end(), toiSort);
-  ticksNow = SDL_GetTicks();
-  std::cout << "Physicsmanager sorted island objects " << ticksNow - startTicks << std::endl;
-  startTicks = ticksNow;
   for(Contact * contact : contacts)
   {
     contact->applyImpulse();
   }
-  ticksNow = SDL_GetTicks();
-  std::cout << "Physicsmanager applied impulses to objects" << ticksNow - startTicks << std::endl;
-  startTicks = ticksNow;
   for (Contact * contact : contacts)
   {
 //    contact->positionCorrectionPre();
@@ -248,11 +241,11 @@ namespace
 
 void PhysicsManager::advance(GameState * p_state)
 {
-  unsigned int startTicks = SDL_GetTicks();
   d->currentIndex.store(0);
   d->objectsToUpdate = &p_state->objects;
   d->nanosToAdvance = p_state->ticksAdvanced * 1e6;
 
+  unsigned int startTicks = SDL_GetTicks();
 
   int threadCount = getThreadPool().threadCount();
   for (int thread = 0;
@@ -266,7 +259,7 @@ void PhysicsManager::advance(GameState * p_state)
   d->currentIndex.store(0);
 
   unsigned int ticksNow = SDL_GetTicks();
-  std::cout << "Physicsmanager moved objects in " << ticksNow - startTicks << std::endl;
+   std::cout << "Physicsmanager moved objects in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
 
 
@@ -278,7 +271,7 @@ void PhysicsManager::advance(GameState * p_state)
   }
 
   ticksNow = SDL_GetTicks();
-  std::cout << "Physicsmanager updated tree in " << ticksNow - startTicks << std::endl;
+ std::cout << "Physicsmanager updated tree in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
 
 
@@ -294,7 +287,6 @@ void PhysicsManager::advance(GameState * p_state)
   std::vector<std::vector<Object *> > primaries;
   std::vector<Contact *> contacts;
   ContactsData * contactData = nullptr;
-  getThreadPool().waitAndDoTasks();
   while (tasks.empty() == false)
   {
     for (auto iter = tasks.begin();
@@ -324,7 +316,7 @@ void PhysicsManager::advance(GameState * p_state)
   }
 
   ticksNow = SDL_GetTicks();
-  std::cout << "Physicsmanager got contacts2 in " << ticksNow - startTicks << std::endl;
+   std::cout << "Physicsmanager got contacts in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
   for (Object* object : *d->objectsToUpdate)
   {
