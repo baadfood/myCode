@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "Shader.h"
 #include "Asset.h"
+#include "Components/Component.h"
 
 #include <memory>
 
@@ -17,28 +18,28 @@ namespace mika
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
   }
 }
-
+/*
 void processRenderBatch(GenericRenderer::RenderBatch * p_batch, CameraWorldBased * p_camera)
 {
   p_camera->updateTransform();
-  if(p_batch->models.size() < p_batch->objects.size())
+  if(p_batch->models.size() < p_batch->components.size())
   {
-    p_batch->models.resize(p_batch->objects.size());
+    p_batch->models.resize(p_batch->components.size());
   }
 
   glm::i64vec2 cameraPos = p_camera->getPos();
   glm::i64 worldPerPixel = p_camera->getWorldPerPixel();
 
   for(int index = 0;
-  index < p_batch->objects.size();
+  index < p_batch->components.size();
     index++)
   {
-    Object * object = p_batch->objects[index];
+    Component * component = p_batch->components[index];
     object->updateTransform(cameraPos, worldPerPixel);
     p_batch->models[index] = object->getTransform();
   }
 }
-
+*/
 
 GenericRenderer::GenericRenderer()
 {
@@ -102,33 +103,48 @@ void GenericRenderer::prepareRenderData(std::vector<Object*> p_objects, GameStat
   iter != m_renderBatches.end();
     iter++)
   {
-    iter->second->objects.clear();
+    iter->second->components.clear();
+    iter->second->models.clear();
   }
 
   Asset * currentAsset = nullptr;
-  unsigned int objCount = static_cast<unsigned int>(p_objects.size());
+  m_camera->updateTransform();
+  glm::i64vec2 cameraPos = m_camera->getPos();
+  glm::i64 worldPerPixel = m_camera->getWorldPerPixel();
+  
+//  std::cout << "Camera Pos " << cameraPos.x << ", " << cameraPos.y << std::endl;
+//  std::cout << "worldPerPixel " << worldPerPixel << std::endl;
+  
   typedef decltype(m_renderBatches.begin()) RenderBatchIterator;
   RenderBatchIterator iter;
   for(int index = 0;
   index < p_objects.size();
     index++)
   {
-    std::shared_ptr<Asset> asset = p_objects[index]->getAsset();
-    if(asset.get() != currentAsset)
+    p_objects[index]->updateTransform(cameraPos, worldPerPixel);
+    std::vector<Component*> const & components = p_objects[index]->getComponents();
+    for(Component * component : components)
     {
-      iter = m_renderBatches.find(asset);
-      if(iter == m_renderBatches.end())
+      std::vector<Asset * > const & assets = component->getAssets();
+      for(Asset * asset : assets)
       {
-        std::shared_ptr<RenderBatch> batch(new RenderBatch);
-        batch->asset = asset;
-        iter = m_renderBatches.insert(std::make_pair<>(asset, batch)).first;
+        if(asset != currentAsset)
+        {
+          iter = m_renderBatches.find(asset);
+          if(iter == m_renderBatches.end())
+          {
+            std::shared_ptr<RenderBatch> batch(new RenderBatch);
+            batch->asset = asset;
+            iter = m_renderBatches.insert(std::make_pair<>(asset, batch)).first;
+          }
+        }
+        iter->second->components.push_back(component);
+        iter->second->models.push_back(component->getModel());
       }
     }
-
-    iter->second->objects.push_back(p_objects[index]);
   }
 
-
+/*7
   for(auto iter = m_renderBatches.begin();
   iter != m_renderBatches.end();
     iter++)
@@ -142,6 +158,8 @@ void GenericRenderer::prepareRenderData(std::vector<Object*> p_objects, GameStat
     tasks.back()->wait();
     tasks.pop_back();
   }
+*/
+  
 }
 
 void GenericRenderer::render()
@@ -151,7 +169,6 @@ void GenericRenderer::render()
       iter != m_renderBatches.end();
       iter++)
   {
-
     glUniformMatrix4fv(m_shader->getUniformLocation(m_cameraTransformUnifName), 1, 0, &(m_camera->getTransform()[0][0]));
     glUniform3fv(m_shader->getUniformLocation(m_positionUnifName), 1, &m_lightPos[0]);
     glUniform3fv(m_shader->getUniformLocation(m_intensityUnifName), 1, &m_lightColor[0]);
@@ -176,7 +193,7 @@ void GenericRenderer::render()
                                       iter->second->asset->getMesh()->getDrawCount(),
                                       GL_UNSIGNED_INT,
                                       0,
-                                      iter->second->objects.size(),
+                                      iter->second->components.size(),
                                       0);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_buffers[GenericRenderer::eModel_Vb]);

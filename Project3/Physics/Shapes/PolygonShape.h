@@ -28,10 +28,46 @@ public:
 
   virtual void computeAabb(AABB & p_aabb, Transform2d const & p_transform)
   {
-    p_aabb.setCenter(p_transform.pos + p_transform.applyRotation(m_pos));
-    p_aabb.setSize(glm::u64vec2(m_radius * 1.05, m_radius * 1.05));
+//    p_aabb.setCenter(p_transform.pos + p_transform.applyRotation(m_pos));
+//    p_aabb.setSize(glm::u64vec2(m_radius * 2.05, m_radius * 2.05));
+    
+    glm::f64 maxX = p_transform.multiply(vertices[0]).x;
+    glm::f64 maxY = p_transform.multiply(vertices[0]).y;
+    glm::f64 minX = maxX;
+    glm::f64 minY = maxY;
+
+//    std::cout << "Vertex 0: " << maxX << ", " << maxY << std::endl;
+    
+    for (unsigned int index = 1;
+    index < vertexCount;
+      index++)
+    {
+      glm::f64vec2 point (p_transform.multiply(vertices[index]));
+//      std::cout << "Vertex " << index << " : " << point.x << ", " << point.y << std::endl;
+      
+      if(point.x > maxX) maxX = point.x;
+      else if(point.x < minX) minX = point.x;
+      if(point.y > maxY) maxY = point.y;
+      else if(point.y < minY) minY = point.y;
+    }
+    
+    maxX /= 2.0;
+    minX /= 2.0;
+    maxY /= 2.0;
+    minY /= 2.0;
+/*    
+    std::cout << maxX << std::endl;
+    std::cout << minX << std::endl;
+    std::cout << maxY << std::endl;
+    std::cout << minY << std::endl;
+  */  
+    p_aabb.setCenter(glm::i64vec2(maxX + minX, maxY + minY));
+    p_aabb.setSize(glm::u64vec2((maxX - minX), (maxY - minY)));
+    m_aabb = p_aabb;
+//    p_transform.print();
+//    p_aabb.print();
   }
-  virtual void calculateMassData(MassData & p_massData, glm::float32 p_density)
+  virtual void calculateMassData(MassData & p_massData, glm::float32 p_density, Transform2d const & p_transform)
   {
     /*
     glm::dvec2 dpos = static_cast<glm::dvec2>(pos);
@@ -53,6 +89,9 @@ public:
       unsigned int nextIndex = index + 1 < vertexCount ? index + 1 : 0;
       glm::f64vec2 point2 = vertices[nextIndex];
 
+      point1 = p_transform.multiply(point1);
+      point2 = p_transform.multiply(point2);
+
       glm::f64 D = mika::cross(point1, point2);
       glm::f64 triangleArea = 0.5f * D;
       area += triangleArea;
@@ -70,11 +109,11 @@ public:
     p_massData.center = centroid;
     p_massData.inertia = I * p_density;
   }
-  virtual bool TestPoint(const Transform2d& p_transform, const glm::i64vec2 & p_pos) const
+/*  virtual bool TestPoint(const Transform2d& p_transform, const glm::i64vec2 & p_pos) const
   {
     glm::dvec2 distance = static_cast<glm::dvec2>(p_pos - p_transform.pos + p_transform.applyRotation(m_pos));
     return glm::dot(distance, distance) <= m_radius * m_radius;
-  }
+  }*/
   virtual bool setVertices(std::vector<glm::f64vec2> const & p_vertices)
   {
     if (p_vertices.size() < 2
@@ -141,7 +180,7 @@ public:
           nextIndex = index;
         }
 
-        if (cross == 0.0 && vert1.x * vert1.y < vert2.x * vert2.y)
+        if (cross == 0.0 && vert1.x * vert1.x + vert1.y * vert1.y < vert2.x * vert2.x + vert2.y * vert2.y)
         {
           nextIndex = index;
         }

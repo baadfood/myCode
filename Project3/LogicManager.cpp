@@ -10,6 +10,7 @@ struct LogicManager::Private
   std::string name;
   std::vector<Object *> * objectsToUpdate;
   std::atomic<int> currentIndex;
+  glm::u64 nanosToAdvance;
 };
 
 LogicManager::LogicManager() :
@@ -38,7 +39,7 @@ void LogicManager::process()
       currentIndex++)
     {
       Object * currentObject = d->objectsToUpdate->at(currentIndex);
-      currentObject->updateLogic();
+      currentObject->updateLogic(d->nanosToAdvance);
     }
   }
 }
@@ -56,6 +57,7 @@ void LogicManager::advance(GameState * p_state)
 {
   d->objectsToUpdate = &p_state->objects;
   d->currentIndex.store(0);
+  d->nanosToAdvance = p_state->ticksAdvanced * 1e6;
 
   int threadCount = getThreadPool().threadCount();
   for (int thread = 0;

@@ -5,7 +5,7 @@
 #include <vector>
 #include <unordered_map>
 
-class Object;
+class Component;
 class ObjectShader;
 class Texture;
 class Mesh;
@@ -33,9 +33,9 @@ public:
 
   struct RenderBatch
   {
-    std::shared_ptr<Asset> asset;
+    Asset * asset;
     std::vector<glm::mat4> models;
-    std::vector<Object*> objects;
+    std::vector<Component*> components;
   };
 
 protected:
@@ -64,7 +64,7 @@ private:
   Shader::Attribute m_modelVb;
   Shader * m_shader;
   CameraWorldBased * m_camera;
-  std::unordered_map<std::shared_ptr<Asset>, std::shared_ptr<RenderBatch> > m_renderBatches;
+  std::unordered_map<Asset *, std::shared_ptr<RenderBatch> > m_renderBatches;
 
 };
 

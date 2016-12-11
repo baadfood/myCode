@@ -31,14 +31,14 @@ public:
 
   virtual void computeAabb(AABB & p_aabb, Transform2d const & p_transform)
   {
-    p_aabb.setCenter(p_transform.pos + p_transform.applyRotation(m_pos));
+    p_aabb.setCenter(p_transform.multiply(m_pos));
     p_aabb.setSize(glm::u64vec2(m_radius * 1.05, m_radius * 1.05));
   }
-  virtual void calculateMassData(MassData & p_massData, glm::float32 p_density)
+  virtual void calculateMassData(MassData & p_massData, glm::float32 p_density, Transform2d const & p_transform)
   {
-    glm::dvec2 dpos =  static_cast<glm::dvec2>(m_pos);
+    glm::dvec2 dpos =  static_cast<glm::dvec2>(p_transform.multiply(m_pos));
     p_massData.mass = p_density * M_PI * m_radius * m_radius;
-    p_massData.center = m_pos;
+    p_massData.center = glm::fvec2(dpos.x, dpos.y);
     p_massData.inertia = p_massData.mass * (0.5f * m_radius * m_radius + glm::dot(dpos, dpos));
   }
   virtual bool TestPoint(const Transform2d& p_transform, const glm::i64vec2 & p_pos) const

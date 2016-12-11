@@ -9,7 +9,7 @@
 class SpinlockThreadpool
 {
 public:
-  SpinlockThreadpool(int p_threadCount = 5, int p_taskQueueSize = 200):
+  SpinlockThreadpool(int p_threadCount = 16, int p_taskQueueSize = 200):
   m_taskQueue(p_taskQueueSize)
   {
     setThreadCount(p_threadCount);
@@ -52,6 +52,10 @@ public:
       {
         (*iter)->join();
       }
+      
+      m_mutex.lock();
+      m_conditionVar.notify_all();
+      m_mutex.unlock();
 
       m_threads.resize(p_count);
       m_stopFlags.resize(p_count);
@@ -97,6 +101,8 @@ public:
   {
     m_unfinishedTasks.fetch_add(1);
     m_taskQueue.push(p_task);
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_conditionVar.notify_one();
   }
 
   template<typename F, typename... Rest>
@@ -113,6 +119,8 @@ public:
 
     m_unfinishedTasks.fetch_add(1);
     this->m_taskQueue.push(taskFunction);
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_conditionVar.notify_one();
 
     return pck->get_future();
   }
@@ -134,6 +142,11 @@ private:
           (*taskFunction)();
           m_unfinishedTasks.fetch_sub(1);
         }
+        else
+        {
+          std::unique_lock<std::mutex> lock(m_mutex);
+          m_conditionVar.wait(lock);
+        }
       }
     };
     m_threads[p_threadIndex].reset(new std::thread(threadFunction));
@@ -143,5 +156,8 @@ private:
   std::vector<std::unique_ptr<std::thread>> m_threads;
   boost::lockfree::queue<std::function<void()> *> m_taskQueue;
   std::atomic<int> m_unfinishedTasks;
+
+  std::mutex m_mutex;
+  std::condition_variable m_conditionVar;
 
 };

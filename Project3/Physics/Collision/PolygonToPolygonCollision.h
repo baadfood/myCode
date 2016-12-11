@@ -91,8 +91,8 @@ class PolygonToPolygonCollision: public Collision
 {
 public:
   virtual bool Collide(Contact*& p_contact,
-    Fixture const & p_fix1, Transform2d const & p_tr1,
-    Fixture const & p_fix2, Transform2d const & p_tr2)
+    Fixture & p_fix1, Transform2d const & p_tr1,
+    Fixture & p_fix2, Transform2d const & p_tr2)
   {
     PolygonShape * poly1 = reinterpret_cast<PolygonShape*>(p_fix1.shape);
     PolygonShape * poly2 = reinterpret_cast<PolygonShape*>(p_fix2.shape);
@@ -210,10 +210,9 @@ public:
     p_contact->timeOfImpact = p_contact->manifold.penetration / speed;
 
 
-    p_contact->fixtures[0].object = p_fix1.object;
-    p_contact->fixtures[1].object = p_fix2.object;
-    p_contact->fixtures[0].shape = p_fix1.shape;
-    p_contact->fixtures[1].shape = p_fix2.shape;
+    p_contact->fixtures[0] = &p_fix1;
+    p_contact->fixtures[1] = &p_fix2;
+    
 
 
 

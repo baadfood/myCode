@@ -1,16 +1,17 @@
-#ifndef Contact_h_
-#define Contact_h_
+#pragma once
 
 #include "Object.h"
 #include "Physics/Fixture.h"
 #include "Physics/Shape.h"
 #include "Physics/Manifold.h"
 #include "utils.h"
+#include "Components/Component.h"
 
 class Contact
 {
 public:
-  Fixture fixtures[2];
+  Component * components[2];
+  Fixture * fixtures[2];
   int vertexIndices[2];
 
   Manifold manifold;
@@ -23,18 +24,24 @@ public:
 
   glm::f64 posCorrection;
   glm::f64vec2 posCorrectionVec;
+  
+  bool physical = true;
 
   void applyImpulse()
   {
-    Object * obj1 = fixtures[0].object;
-    Object * obj2 = fixtures[1].object;
+    if(physical == false)
+    {
+      return;
+    }
+    Object * obj1 = fixtures[0]->object;
+    Object * obj2 = fixtures[1]->object;
     glm::f64vec2 obj1Speed((glm::f64vec2)(obj1->getSpeed()));
     glm::f64vec2 obj2Speed((glm::f64vec2)(obj2->getSpeed()));
     glm::f64 obj1RotSpeed = obj1->getRotSpeed();
     glm::f64 obj2RotSpeed = obj2->getRotSpeed();
 
-    glm::i64vec2 shape1Pos = obj1->getPos() + fixtures[0].shape->getPos();
-    glm::i64vec2 shape2Pos = obj2->getPos() + fixtures[1].shape->getPos();
+    glm::i64vec2 shape1Pos = obj1->getPos() + fixtures[0]->shape->getPos();
+    glm::i64vec2 shape2Pos = obj2->getPos() + fixtures[1]->shape->getPos();
 
     for(unsigned short i = 0; i < manifold.pointCount; ++i)
     {
@@ -116,10 +123,15 @@ public:
 
   void positionCorrectionPre()
   {
+    if(physical == false)
+    {
+      return;
+    }
+
     const float c_slop = OBJTOWORLD/16;
     const float c_correctionAmount = 0.5;
-    Object * obj1 = fixtures[0].object;
-    Object * obj2 = fixtures[1].object;
+    Object * obj1 = fixtures[0]->object;
+    Object * obj2 = fixtures[1]->object;
 
     posCorrectionVec = (std::max(manifold.penetration - c_slop, 0.0) / (obj1->getInvMass() + obj2->getInvMass())) * c_correctionAmount * manifold.localNormal;
 
@@ -131,20 +143,24 @@ public:
 
   void positionCorrection()
   {
+    if(physical == false)
+    {
+      return;
+    }
+
     if (posCorrection <= 0.0)
     {
       return;
     }
-    glm::f64 pressure1 = fixtures[0].object->positionCorrectionPressure();
-    glm::f64 pressure2 = fixtures[1].object->positionCorrectionPressure();
+    glm::f64 pressure1 = fixtures[0]->object->positionCorrectionPressure();
+    glm::f64 pressure2 = fixtures[1]->object->positionCorrectionPressure();
 
     glm::f64 totalPressure =  pressure1 + pressure2;
     glm::f64 pressureDif1 = (pressure2 / totalPressure) * 2;
     glm::f64 pressureDif2 = (pressure1 / totalPressure) * 2;
 
-    fixtures[0].object->moveBy(-posCorrectionVec * fixtures[0].object->getInvMass() * pressureDif1);
-    fixtures[1].object->moveBy(posCorrectionVec * fixtures[1].object->getInvMass() / pressureDif1);
+    fixtures[0]->object->moveBy(-posCorrectionVec * fixtures[0]->object->getInvMass() * pressureDif1);
+    fixtures[1]->object->moveBy(posCorrectionVec * fixtures[1]->object->getInvMass() / pressureDif1);
   }
 };
 
-#endif

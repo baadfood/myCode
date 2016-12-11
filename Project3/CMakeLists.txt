@@ -4,10 +4,6 @@ message("CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}")
 
 find_package(SDL2 REQUIRED)
 
-set(CMAKE_PREFIX_PATH "E:/Projects/myCode3/glew-1.13.0")
-set(CMAKE_LIBRARY_PATH "E:/Projects/myCode3/glew-1.13.0/lib/Release/x64")
-set(BOOST_ROOT "${CMAKE_SOURCE_DIR}/boost_1_59_0")
-
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Boost REQUIRED)
@@ -48,6 +44,10 @@ set(Project3_SRCS
 ./Transform.cpp
 ./utils.cpp
 ./Shader.cpp
+./Components/Component.cpp
+./Components/Sensor.cpp
+./AI/BasicAi.cpp
+./AI/Ai.cpp
 )
 
 set(Project3_HDRS
@@ -83,7 +83,6 @@ set(Project3_HDRS
 ./Physics/Collision/CircleToPolygonCollision.h
 ./Physics/Collision/PolygonToPolygonCollision.h
 ./Physics/Contact/CircleContact.h
-./Physics/CollisionIsland.h
 ./Physics/Fixture.h
 ./Physics/ContactFilter.h
 ./Physics/Manifold.h
@@ -111,7 +110,10 @@ set(Project3_HDRS
 ./Spinlock.h
 ./ObjectRenderer.h
 ./PhysicsManager.h
-./SharedPtr.h
+./Components/Component.h
+./Components/Sensor.h
+./AI/BasicAi.h
+./AI/Ai.h
 )
 
 set(Project3_INLS./InputHandlers/MoveOnKeyDownHandler.inl

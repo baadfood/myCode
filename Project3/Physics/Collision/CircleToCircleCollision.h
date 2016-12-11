@@ -16,8 +16,8 @@ class CircleToCircleCollision: public Collision
 public:
 
   virtual bool Collide(Contact *& p_contact,
-    Fixture const & p_fix1, Transform2d const & p_tf1,
-    Fixture const & p_fix2, Transform2d const & p_tf2)
+    Fixture & p_fix1, Transform2d const & p_tf1,
+    Fixture & p_fix2, Transform2d const & p_tf2)
   {
     CircleShape * circle1 = static_cast<CircleShape *>(p_fix1.shape);
     CircleShape * circle2 = static_cast<CircleShape *>(p_fix2.shape);
@@ -49,10 +49,8 @@ public:
     double speed = glm::length(p_contact->relativeVelocity);
     p_contact->timeOfImpact = p_contact->manifold.penetration / speed;
 
-    p_contact->fixtures[0].object = p_fix1.object;
-    p_contact->fixtures[1].object = p_fix2.object;
-    p_contact->fixtures[0].shape = p_fix1.shape;
-    p_contact->fixtures[1].shape = p_fix2.shape;
+    p_contact->fixtures[0] = &p_fix1;
+    p_contact->fixtures[1] = &p_fix2;
 
     return true;
   }

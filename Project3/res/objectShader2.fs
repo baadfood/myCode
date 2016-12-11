@@ -56,5 +56,5 @@ void main() {
     vec3 mapped = vec3(1.0) - exp(-linearColor * exposure);
     mapped = pow(mapped, vec3(1.0 / gamma));
 
-    finalColor = vec4(surfaceColor.a, surfaceColor.a, surfaceColor.a, surfaceColor.a);
+    finalColor = vec4(surfaceColor.r, surfaceColor.g, surfaceColor.a, surfaceColor.a);
 }

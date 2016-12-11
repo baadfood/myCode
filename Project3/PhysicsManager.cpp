@@ -30,7 +30,7 @@ struct PhysicsManager::Private
 
 struct PhysicsManager::ContactsData
 {
-  std::vector<Contact *> contacts;
+  std::vector<Contact * > contacts;
   std::vector<Object *> primaryObjects;
 };
 
@@ -87,7 +87,7 @@ bool PhysicsManager::checkCollision(Object * p_object1, Object * p_object2, std:
 PhysicsManager::ContactsData * PhysicsManager::getContacts()
 {
   int size = d->objectsToUpdate->size();
-  int blocksize = size / 80;
+  int blocksize = size / 800;
   if(blocksize == 0)
   {
     blocksize = size;
@@ -95,7 +95,13 @@ PhysicsManager::ContactsData * PhysicsManager::getContacts()
   int currentIndex;
   int lastIndex;
   int limit = 0;
-
+  
+  int collisionsChecked = 0;
+  int objectsChecked = 0;
+  
+  unsigned int ticksStart = SDL_GetTicks();
+  unsigned int ticksCheckedQuadtree = 0;
+  unsigned int ticksCheckedCollisions = 0;
   ContactsData * retval = new ContactsData();
 
   std::vector<Object *> objectCollisions;
@@ -108,14 +114,18 @@ PhysicsManager::ContactsData * PhysicsManager::getContacts()
       currentIndex++)
     {
       Object * currentObject = d->objectsToUpdate->at(currentIndex);
+      unsigned int quadtreeStart = SDL_GetTicks();
       currentObject->getTreeNode()->getObjectsIntersected(currentObject->getAABB(), objectCollisions);
+      ticksCheckedQuadtree += SDL_GetTicks() - quadtreeStart;
       bool firstCollision = true;
-      std::vector<Contact*> const & contacts = currentObject->getContacts();
+      objectsChecked++;
+//      std::vector<Contact*> const & contacts = currentObject->getContacts();
       for (Object * obj : objectCollisions)
       {
         if (currentObject < obj)
         {
-/*          for (Contact const * contact : contacts)
+          /*
+          for (Contact const * contact : contacts)
           {
             if (contact->fixtures[1].object == obj
               || contact->fixtures[0].object == obj)
@@ -124,6 +134,7 @@ PhysicsManager::ContactsData * PhysicsManager::getContacts()
               continue;
             }
           }*/
+          collisionsChecked++;
           if (checkCollision(currentObject, obj, retval->contacts))
           {
             if (firstCollision)
@@ -136,12 +147,15 @@ PhysicsManager::ContactsData * PhysicsManager::getContacts()
       }
     }
   }
+//  std::stringstream sstream;
+//  sstream << std::this_thread::get_id() << " Collisions checked " << collisionsChecked << " ticks checked quadtree " << ticksCheckedQuadtree << " ticks total " << SDL_GetTicks() - ticksStart << std::endl;
+//  std::cout << sstream.str();
   return retval;
 }
 
 void PhysicsManager::correctPositions()
 {
-  int size = d->objectsToUpdate->size();
+/*  int size = d->objectsToUpdate->size();
   int blocksize = size / 800;
   if(blocksize == 0)
   {
@@ -171,12 +185,12 @@ void PhysicsManager::correctPositions()
         }
       }
     }
-  }
+  }*/
 }
 
 namespace
 {
-  bool toiSort(Contact const * p_contact1, Contact const * p_contact2)
+  bool toiSort(Contact * const p_contact1, Contact * const p_contact2)
   {
     if(p_contact1->timeOfImpact < p_contact2->timeOfImpact)
     {
@@ -188,12 +202,12 @@ namespace
 
 void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
 {
-  std::vector<Contact *> contacts;
+  std::vector<Contact *>  contacts;
   contacts.reserve(p_island.size() * 2);
 
   for(Object * obj : p_island)
   {
-    std::vector<Contact*> const & objContacts = obj->getContacts();
+    std::vector<Contact *> const & objContacts = obj->getContacts();
     contacts.reserve(objContacts.size() + contacts.capacity());
     for(Contact * contact : objContacts)
     {
@@ -205,13 +219,13 @@ void PhysicsManager::processIsland(std::vector< Object* > const & p_island)
   {
     contact->applyImpulse();
   }
-  for (Contact * contact : contacts)
+  for(Contact * contact : contacts)
   {
-//    contact->positionCorrectionPre();
+    contact->positionCorrectionPre();
   }
-  for (Contact * contact : contacts)
+  for(Contact * contact : contacts)
   {
-//     contact->positionCorrection();
+    contact->positionCorrection();
   }
 }
 
@@ -244,6 +258,8 @@ void PhysicsManager::advance(GameState * p_state)
   d->currentIndex.store(0);
   d->objectsToUpdate = &p_state->objects;
   d->nanosToAdvance = p_state->ticksAdvanced * 1e6;
+  
+  std::stringstream sstream;
 
   unsigned int startTicks = SDL_GetTicks();
 
@@ -259,7 +275,7 @@ void PhysicsManager::advance(GameState * p_state)
   d->currentIndex.store(0);
 
   unsigned int ticksNow = SDL_GetTicks();
-   std::cout << "Physicsmanager moved objects in " << ticksNow - startTicks << std::endl;
+   sstream << "Physicsmanager moved objects in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
 
 
@@ -269,9 +285,10 @@ void PhysicsManager::advance(GameState * p_state)
   {
     (*iter)->updateTree();
   }
+  p_state->spatialTree->pruneTree();
 
   ticksNow = SDL_GetTicks();
- std::cout << "Physicsmanager updated tree in " << ticksNow - startTicks << std::endl;
+  sstream << "Physicsmanager updated tree in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
 
 
@@ -285,7 +302,7 @@ void PhysicsManager::advance(GameState * p_state)
     tasks.emplace_back(getThreadPool().push(std::bind(&PhysicsManager::getContacts, this)));
   }
   std::vector<std::vector<Object *> > primaries;
-  std::vector<Contact *> contacts;
+  std::vector<Contact * > contacts;
   ContactsData * contactData = nullptr;
   while (tasks.empty() == false)
   {
@@ -301,7 +318,7 @@ void PhysicsManager::advance(GameState * p_state)
         contacts.resize(contacts.size() + contactData->contacts.size());
         for (Contact * contact : contactData->contacts)
         {
-          contacts.push_back(std::move(contact));
+          contacts.push_back(contact);
         }
         primaries.push_back(contactData->primaryObjects);
         delete contactData;
@@ -316,12 +333,16 @@ void PhysicsManager::advance(GameState * p_state)
   }
 
   ticksNow = SDL_GetTicks();
-   std::cout << "Physicsmanager got contacts in " << ticksNow - startTicks << std::endl;
+  sstream << "Physicsmanager got contacts in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
   for (Object* object : *d->objectsToUpdate)
   {
     object->updateIsland();
   }
+
+  ticksNow = SDL_GetTicks();
+  sstream << "Physicsmanager updated islands in " << ticksNow - startTicks << std::endl;
+  startTicks = ticksNow;
 
   std::set<CollisionIsland *> islands;
   for (Object* object : *d->objectsToUpdate)
@@ -438,7 +459,7 @@ void PhysicsManager::advance(GameState * p_state)
   */
 
   ticksNow = SDL_GetTicks();
-   std::cout << "Physicsmanager got islands in " << ticksNow - startTicks << std::endl;
+  sstream << "Physicsmanager got islands in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
 
 //   std::cout << "Such islands: " << islands.size() << std::endl;
@@ -457,6 +478,8 @@ void PhysicsManager::advance(GameState * p_state)
   getThreadPool().waitAndDoTasks();
 
   ticksNow = SDL_GetTicks();
-   std::cout << "Physicsmanager processed islands in " << ticksNow - startTicks << std::endl;
+  sstream << "Physicsmanager processed islands in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
+  
+//  std::cout << sstream.str();
 }

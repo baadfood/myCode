@@ -169,9 +169,12 @@ bool Display::handleEvent(SDL_Event * p_event, GameState * p_state)
     p_state->spatialTree->getObjectsAt(worldPos, objects);
     auto sortFunc = std::bind(objectPriority, worldPos, std::placeholders::_1, std::placeholders::_2);
 
-    if(objects.size() != 0)
+    static size_t nobjects = 0;
+    
+    if(objects.size() != nobjects)
     {
       std::cout << "Objects under cursor: " << objects.size() << std::endl;
+      nobjects = objects.size();
     }
 
     std::sort(objects.begin(), objects.end(), sortFunc);

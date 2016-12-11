@@ -34,7 +34,7 @@ public:
   virtual AABB const & getAabb() const { return m_aabb; }
   virtual AABB & getAabb() { return m_aabb; }
   virtual void computeAabb(AABB & p_aabb, Transform2d const & p_transform) = 0;
-  virtual void calculateMassData(MassData & p_massData, glm::float32 p_density) = 0;
+  virtual void calculateMassData(MassData & p_massData, glm::float32 p_density, Transform2d const & p_transform) = 0;
 protected:
 
   glm::i64vec2 m_pos;

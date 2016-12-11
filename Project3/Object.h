@@ -14,12 +14,15 @@
 #include "Spinlock.h"
 #include "SharedPtr.h"
 
+class Component;
 class Contact;
 class SpatialTree;
-static const glm::i64 OBJTOWORLD = 2147483648;
+//static const glm::i64 OBJTOWORLD = 2147483648;
+static const glm::i64 OBJTOWORLD = 1000000000;
 class CameraWorldBased;
 class Fixture;
 class CollisionIsland;
+class Ai;
 
 class Object : public Base, public UserInputHandler
 {
@@ -34,7 +37,7 @@ public:
 
   virtual ~Object();
 
-  virtual void getConnectedObjects(std::vector<Object*> & p_connectedObjects);
+//  virtual void getConnectedObjects(std::vector<Object*> & p_connectedObjects);
 
   virtual void addContact(Contact * p_manifold);
   virtual std::vector<Contact*> const & getContacts();
@@ -42,9 +45,6 @@ public:
 
   virtual void setName(std::string const & p_name);
   virtual std::string const & getName() const;
-
-  virtual void setAsset(std::shared_ptr<Asset> p_Asset);
-  virtual std::shared_ptr<Asset> getAsset();
 
   virtual AABB const & getAABB() const;
 
@@ -81,9 +81,9 @@ public:
   virtual void setRot(glm::float32 p_rot);
   virtual glm::float32 getRot() const;
 
-  virtual std::vector<Fixture*> const & getFixtures() const;
-  virtual void addFixture(Fixture * p_fixture);
-  virtual void removeFixture(Fixture * p_fixture);
+  virtual void addComponent(Component * p_component);
+  virtual void removeComponent(Component * p_component);
+  virtual std::vector<Component*> const & getComponents() const;
 
   virtual void updateTransform(glm::i64vec2 const & p_origin = glm::i64vec2(0, 0), glm::i64 p_worldPerPixel = 1);
 
@@ -114,23 +114,24 @@ public:
 
   virtual bool isInCorrectQuadtreeNode() const;
 
-  virtual void updateLogic();
+  virtual void updateLogic(glm::u64 p_nanos);
 
   glm::f64 & positionCorrectionPressure();
 
   CollisionIsland * getCollisionIsland();
 
   void updateIsland();
+  void setAi(Ai* p_ai);
 
 private:
   std::vector<std::shared_ptr<UserInputHandler>> m_inputHandlers;
 
-  SharedPtr<CollisionIsland> m_collisionIsland;
+  std::shared_ptr<CollisionIsland> m_collisionIsland;
 
-  std::vector<Fixture*> m_fixtures;
+  std::vector<Component*> m_components;
   std::vector<Contact*> m_contacts;
 
-  std::shared_ptr<Asset> m_asset;
+  Ai * m_ai;
   Spinlock m_lock;
   SpatialTree * m_treeNode;
   AABB m_aabb;
@@ -138,7 +139,6 @@ private:
 
   std::string m_name;
 
-  glm::mat4 m_model;
   glm::u32 m_typeId;
 
   glm::f64 m_positionCorrectionPressure;
@@ -157,6 +157,7 @@ private:
   glm::f64 m_mass, m_invMass;
   glm::f64 m_inertia, m_invInertia;
 
+  glm::mat4 m_model;
   Transform2D m_transform;
   Transform2d m_physicsTransform;
 

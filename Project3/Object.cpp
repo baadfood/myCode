@@ -9,11 +9,14 @@
 #include "Physics/Manifold.h"
 
 #include "Physics/CollisionIsland.h"
+#include "Components/Component.h"
+#include "AI/Ai.h"
 
 #include <cassert>
 
 Object::Object(std::string const & p_name, glm::i64vec2 p_pos, glm::u64vec2 p_halfSize, glm::i32vec2 p_speed, glm::float32 p_rot, glm::float32 p_rotSpeed, glm::i64vec2 p_origin) :
 m_pos(p_pos),
+m_ai(nullptr),
 m_halfSize(p_halfSize),
 m_speed(p_speed),
 m_rot(p_rot),
@@ -24,6 +27,7 @@ m_name(p_name),
 m_treeNodeIndex(0),
 m_rotAccel(0),
 m_accel(0,0),
+m_centerOfMass(0,0),
 m_positionCorrectionPressure(0)
 {
 }
@@ -31,7 +35,7 @@ m_positionCorrectionPressure(0)
 Object::~Object()
 {
 }
-
+/*
 void Object::getConnectedObjects(std::vector<Object*> & p_connectedObjects)
 {
   if(m_collisionIsland == nullptr
@@ -43,8 +47,7 @@ void Object::getConnectedObjects(std::vector<Object*> & p_connectedObjects)
   for (Contact * contact : m_contacts)
   {
     Object * other = contact->fixtures[1].object != this ? contact->fixtures[1].object : contact->fixtures[0].object;
-    if (other->m_collisionIsland == nullptr
-    || other->m_collisionIsland.isNull())
+    if (other->m_collisionIsland == nullptr)
     {
       other->m_collisionIsland = m_collisionIsland;
 //      other->getConnectedObjects(p_connectedObjects);
@@ -55,7 +58,7 @@ void Object::getConnectedObjects(std::vector<Object*> & p_connectedObjects)
     }
   }
 }
-
+*/
 void Object::updateIsland()
 {
   if (m_contacts.empty())
@@ -63,61 +66,83 @@ void Object::updateIsland()
     return;
   }
 
-  if (m_collisionIsland == nullptr
-    || m_collisionIsland.isNull())
+  if (m_collisionIsland == nullptr)
   {
     bool set = false;
     for (Contact * contact : m_contacts)
     {
-      Object * other = contact->fixtures[1].object != this ? contact->fixtures[1].object : contact->fixtures[0].object;
-      if (other->m_collisionIsland != nullptr
-        && other->m_collisionIsland.isNull() == false)
+      if(contact->physical)
       {
-        set = true;
-        m_collisionIsland = other->m_collisionIsland;
-        break;
+        Object * other = contact->fixtures[1]->object != this ? contact->fixtures[1]->object : contact->fixtures[0]->object;
+        if (other->m_collisionIsland != nullptr)
+        {
+          set = true;
+          m_collisionIsland = other->m_collisionIsland;
+          break;
+        }
       }
     }
 
     if (!set)
     {
-      m_collisionIsland = CollisionIsland::newCollisionIsland();
+      m_collisionIsland = std::shared_ptr<CollisionIsland>(CollisionIsland::newCollisionIsland());
 //      std::cout << this << " New collision island " << m_collisionIsland.get() << " : " << std::endl;
+      for (Contact * contact : m_contacts)
+      {
+        if(contact->physical)
+        {
+          Object * other = contact->fixtures[1]->object != this ? contact->fixtures[1]->object : contact->fixtures[0]->object;
+          other->m_collisionIsland = m_collisionIsland;
+          m_collisionIsland->objects.push_back(other);
+        }
+      }
     }
-    m_collisionIsland.get()->objects.push_back(this);
+    m_collisionIsland->objects.push_back(this);
   }
 
   for (Contact * contact : m_contacts)
   {
-    Object * other = contact->fixtures[1].object != this ? contact->fixtures[1].object : contact->fixtures[0].object;
-    m_collisionIsland.get()->objects.reserve(m_collisionIsland.get()->objects.size() + m_contacts.size());
-    if (other->m_collisionIsland == nullptr
-      || other->m_collisionIsland.isNull())
+    Object * other = nullptr;
+    if(contact->fixtures[0]->object == this)
     {
-      other->m_collisionIsland = m_collisionIsland;
-//      std::cout << this << " Single add " << m_collisionIsland.get() << " : " << other << std::endl;
-      m_collisionIsland.get()->objects.push_back(other);
-      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
+      contact->components[1]->addContact(contact);
+      other = contact->fixtures[1]->object;
     }
-    else if (other->m_collisionIsland.get() != m_collisionIsland.get())
+    else
     {
-//      std::cout << this << " Merge add " << m_collisionIsland.get() << " : " << other->m_collisionIsland.get() << " : " << other << std::endl;
-      m_collisionIsland.get()->objects.insert(m_collisionIsland.get()->objects.end(), other->m_collisionIsland.get()->objects.begin(), other->m_collisionIsland.get()->objects.end());
-      for (auto object : other->m_collisionIsland.get()->objects)
+      contact->components[0]->addContact(contact);
+      other = contact->fixtures[0]->object;
+    }
+    if(contact->physical)
+    {
+      m_collisionIsland->objects.reserve(m_collisionIsland->objects.size() + m_contacts.size());
+      if (other->m_collisionIsland == nullptr)
       {
-        object->m_collisionIsland = m_collisionIsland;
+        other->m_collisionIsland = m_collisionIsland;
+  //      std::cout << this << " Single add " << m_collisionIsland.get() << " : " << other << std::endl;
+        m_collisionIsland->objects.push_back(other);
+  //      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
       }
-      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
-//      other->m_collisionIsland.redirect(m_collisionIsland); This didn't work
-/*      for (auto object : m_collisionIsland.get()->objects)
+      else if (other->m_collisionIsland != m_collisionIsland)
       {
-        if (object->m_collisionIsland.get() != m_collisionIsland.get())
+  //      std::cout << this << " Merge add " << m_collisionIsland.get() << " : " << other->m_collisionIsland.get() << " : " << other << std::endl;
+        m_collisionIsland->objects.insert(m_collisionIsland->objects.end(), other->m_collisionIsland->objects.begin(), other->m_collisionIsland->objects.end());
+        for (auto object : other->m_collisionIsland->objects)
         {
-          std::cout << object << " Wrong collision island " << object->m_collisionIsland.get() << std::endl;
+          object->m_collisionIsland = m_collisionIsland;
         }
+  //      assert(mika::checkDuplicates(m_collisionIsland.get()->objects));
+  //      other->m_collisionIsland.redirect(m_collisionIsland); This didn't work
+  /*      for (auto object : m_collisionIsland.get()->objects)
+        {
+          if (object->m_collisionIsland.get() != m_collisionIsland.get())
+          {
+            std::cout << object << " Wrong collision island " << object->m_collisionIsland.get() << std::endl;
+          }
+        }
+  */
+  //      other->updateIsland();
       }
-*/
-//      other->updateIsland();
     }
   }
 }
@@ -148,6 +173,10 @@ std::vector<Contact*> const & Object::getContacts()
 
 void Object::clearContacts()
 {
+  for(Component * component : m_components)
+  {
+    component->clearContacts();
+  }
   m_contacts.clear();
   m_collisionIsland.reset();
 }
@@ -195,15 +224,6 @@ void Object::updateTree()
     assert(false);
     //ERROR;
   }
-}
-
-void Object::setAsset(std::shared_ptr<Asset> p_Asset)
-{
-  m_asset = p_Asset;
-}
-std::shared_ptr<Asset> Object::getAsset()
-{
-  return m_asset;
 }
 
 void Object::moveBy(glm::i64vec2 const & p_pos)
@@ -296,6 +316,10 @@ void Object::updateTransform(glm::i64vec2 const & p_origin, glm::i64 p_worldPerP
   m_transform.getRot() = m_rot;
   m_transform.getScale() = glm::vec2(double(m_halfSize.x)/double(p_worldPerPixel), double(m_halfSize.y)/double(p_worldPerPixel));
   m_model = m_transform.getModel();
+  for(Component * component : m_components)
+  {
+    component->updateTransform(p_origin, p_worldPerPixel, m_transform.getScale());
+  }
 }
 
 glm::mat4 const & Object::getTransform() const
@@ -305,16 +329,17 @@ glm::mat4 const & Object::getTransform() const
 
 void Object::updateAabb()
 {
-  if (m_fixtures.empty() == false)
+  if (m_components.empty() == false)
   {
     m_aabb.reset();
-    for (auto iter = m_fixtures.begin();
-    iter != m_fixtures.end();
-      iter++)
+    if (m_components.empty() == false)
     {
-      Fixture * fixture = (*iter);
-      fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
-      m_aabb += fixture->shape->getAabb();
+      m_aabb.reset();
+      for(Component * component : m_components)
+      {
+        component->computeAabb();
+        m_aabb += component->getAabb();
+      }
     }
   }
   else
@@ -335,9 +360,16 @@ bool Object::handleGotFocus(SDL_Event const * p_event)
   return handleInput(p_event);
 }
 
-void Object::updateLogic()
+void Object::updateLogic(glm::u64 p_nanos)
 {
-
+  for(Component * component : m_components)
+  {
+    component->updateLogic(p_nanos);
+  }
+  if(m_ai)
+  {
+    m_ai->updateLogic(p_nanos);
+  }
 }
 
 glm::f64 & Object::positionCorrectionPressure()
@@ -355,6 +387,7 @@ void Object::advance(glm::u64 p_nanos)
 {
   double seconds = double(p_nanos) / 1e9;
   m_positionCorrectionPressure /= pow(seconds/8 + 1, 2);
+  updateMass();
 
   m_rot += m_rotSpeed * seconds;
   m_rot += m_rotAccel * pow(seconds,2) / 2;
@@ -373,51 +406,33 @@ void Object::advance(glm::u64 p_nanos)
   m_physicsTransform.pos = m_pos;
   m_physicsTransform.rot = glm::fvec2(cos(m_rot), sin(m_rot));
 
-  if (m_fixtures.empty() == false)
+  if (m_components.empty() == false)
   {
     m_aabb.reset();
-    for (auto iter = m_fixtures.begin();
-    iter != m_fixtures.end();
-      iter++)
+    for(Component * component : m_components)
     {
-      Fixture * fixture = (*iter);
-      fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
-      m_aabb += fixture->shape->getAabb();
+      component->advance(p_nanos, this);
+      component->computeAabb();
+      m_aabb += component->getAabb();
     }
   }
 }
 
-std::vector<Fixture*> const & Object::getFixtures() const
+std::vector<Component*> const & Object::getComponents() const
 {
-  return m_fixtures;
+  return m_components;
 }
 
-void Object::addFixture(Fixture * p_fixture)
+void Object::addComponent(Component * p_component)
 {
-  m_fixtures.push_back(p_fixture);
-  m_aabb.reset();
-  for (auto iter = m_fixtures.begin();
-  iter != m_fixtures.end();
-    iter++)
-  {
-    Fixture * fixture = (*iter);
-    fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
-    m_aabb += fixture->shape->getAabb();
-  }
+  m_components.push_back(p_component);
+  p_component->setObject(this);
 }
 
-void Object::removeFixture(Fixture * p_fixture)
+void Object::removeComponent(Component * p_component)
 {
-  mika::removeOne(m_fixtures, p_fixture);
-  m_aabb.reset();
-  for (auto iter = m_fixtures.begin();
-  iter != m_fixtures.end();
-    iter++)
-  {
-    Fixture * fixture = (*iter);
-    fixture->shape->computeAabb(fixture->shape->getAabb(), m_physicsTransform);
-    m_aabb += fixture->shape->getAabb();
-  }
+  mika::removeOne(m_components, p_component);
+  p_component->setObject(nullptr);
 }
 
 glm::u32 Object::getTypeId() const
@@ -507,15 +522,10 @@ void Object::updateMass()
   m_centerOfMass.x = 0;
   m_centerOfMass.y = 0;
   
-  for(Fixture * fix : m_fixtures)
+  for(Component * component: m_components)
   {
-    if(fix->density == 0)
-    {
-      continue;
-    }
-    
     MassData mass;
-    fix->shape->calculateMassData(mass, fix->density);
+    component->calculateMassData(mass);
     
     m_mass += mass.mass;
     m_centerOfMass += mass.center * mass.mass;
@@ -546,14 +556,28 @@ void Object::updateMass()
     m_inertia = 0.0f;
     m_invInertia = 0.0f;
   }
+  
+  glm::i64vec2 centerOfMassCorrection = m_centerOfMass - oldCenter;
+  centerOfMassCorrection /= 2;
+  
+  for(Component * component: m_components)
+  {
+    component->getPosition() -= centerOfMassCorrection;
+  }
 
   // Update center of mass velocity.
-  m_speed += mika::crossS(m_rotSpeed, m_centerOfMass - oldCenter);
+//  m_speed += mika::crossS(m_rotSpeed, m_centerOfMass - oldCenter);
 }
 
 void Object::applyImpulse(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector)
 {
   m_speed += glm::i64vec2(m_invMass * p_impulse);
   m_rotSpeed += m_invInertia * mika::cross(p_contactVector, p_impulse);
+}
+
+
+void Object::setAi(Ai* p_ai)
+{
+  m_ai = p_ai;
 }
 

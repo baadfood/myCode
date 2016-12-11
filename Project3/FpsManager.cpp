@@ -28,9 +28,13 @@ FpsManager::~FpsManager()
 
 void FpsManager::advance(GameState * p_state)
 {
-  if (d->lastTicks + d->frameDelay > p_state->currentFrameTime)
+  if (d->frameDelay >= p_state->ticksAdvanced)
   {
-    SDL_Delay(d->lastTicks + d->frameDelay - p_state->prevFrameTime);
+    SDL_Delay(d->frameDelay - p_state->ticksAdvanced);
+  }
+  else
+  {
+    std::cout << "Too much to compute to keep up with desired framerate : " << p_state->ticksAdvanced - d->frameDelay << std::endl;
   }
   d->lastTicks = p_state->prevFrameTime;
 }

@@ -17,8 +17,8 @@ class CircleToPolygonCollision: public Collision
 public:
 
   virtual bool Collide(Contact *& p_contact,
-    Fixture const & p_fix1, Transform2d const & p_tf1,
-    Fixture const & p_fix2, Transform2d const & p_tf2)
+    Fixture & p_fix1, Transform2d const & p_tf1,
+    Fixture & p_fix2, Transform2d const & p_tf2)
   {
     CircleShape * circle = static_cast<CircleShape *>(p_fix1.shape);
     PolygonShape * polygon = static_cast<PolygonShape *>(p_fix2.shape);
@@ -134,10 +134,8 @@ public:
     }
 
     p_contact->timeOfImpact = p_contact->manifold.penetration / glm::length(p_contact->relativeVelocity);
-    p_contact->fixtures[0].object = p_fix1.object;
-    p_contact->fixtures[1].object = p_fix2.object;
-    p_contact->fixtures[0].shape = p_fix1.shape;
-    p_contact->fixtures[1].shape = p_fix2.shape;
+    p_contact->fixtures[0] = &p_fix1;
+    p_contact->fixtures[1] = &p_fix2;
 
 
     return true;
