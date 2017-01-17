@@ -12,6 +12,8 @@
 #include "Components/Component.h"
 #include "AI/Ai.h"
 
+#include <iostream>
+
 #include <cassert>
 
 Object::Object(std::string const & p_name, glm::i64vec2 p_pos, glm::u64vec2 p_halfSize, glm::i32vec2 p_speed, glm::float32 p_rot, glm::float32 p_rotSpeed, glm::i64vec2 p_origin) :
@@ -176,6 +178,10 @@ void Object::clearContacts()
   for(Component * component : m_components)
   {
     component->clearContacts();
+  }
+  for(Contact * contact : m_contacts)
+  {
+    Contact::freeContact(contact);
   }
   m_contacts.clear();
   m_collisionIsland.reset();
@@ -385,12 +391,25 @@ void Object::handleLostFocus(SDL_Event const * p_event)
 
 void Object::advance(glm::u64 p_nanos)
 {
+  for(Component * component : m_components)
+  {
+    component->advance(p_nanos, this);
+  }
   double seconds = double(p_nanos) / 1e9;
   m_positionCorrectionPressure /= pow(seconds/8 + 1, 2);
   updateMass();
 
   m_rot += m_rotSpeed * seconds;
   m_rot += m_rotAccel * pow(seconds,2) / 2;
+  while(m_rot > mika::pi)
+  {
+    m_rot -= 2*mika::pi;
+  }
+  while(m_rot < -mika::pi)
+  {
+    m_rot += 2*mika::pi;
+  }
+  
   m_rotSpeed += m_rotAccel * seconds;
 
   m_accel.x /= 2;
@@ -411,7 +430,7 @@ void Object::advance(glm::u64 p_nanos)
     m_aabb.reset();
     for(Component * component : m_components)
     {
-      component->advance(p_nanos, this);
+      component->updatePosition(this);
       component->computeAabb();
       m_aabb += component->getAabb();
     }
@@ -575,9 +594,40 @@ void Object::applyImpulse(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector)
   m_rotSpeed += m_invInertia * mika::cross(p_contactVector, p_impulse);
 }
 
+void Object::storeImpulse(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector)
+{
+  m_stored_speed += glm::i64vec2(m_invMass * p_impulse);
+  m_stored_rotSpeed += m_invInertia * mika::cross(p_contactVector, p_impulse);
+}
+
+void Object::applyStoredImpulses()
+{
+  m_speed += m_stored_speed;
+  m_rotSpeed += m_stored_rotSpeed;
+  
+  m_stored_speed = glm::i64vec2(0,0);
+  m_stored_rotSpeed = 0;
+}
+
+void Object::calculateImpluseEffect(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector, glm::i64vec2& p_accel, float& p_rotSpeed)
+{
+  p_accel = glm::i64vec2(m_invMass * p_impulse);
+  p_rotSpeed += m_invInertia * mika::cross(p_contactVector, p_impulse);
+}
 
 void Object::setAi(Ai* p_ai)
 {
   m_ai = p_ai;
+}
+
+void Object::print()
+{
+  std::stringstream sstream;
+  
+  sstream << "Object " << m_name << std::endl;
+  sstream << "Rot " << m_rot << std::endl;
+  sstream << "RotSpeed " << m_rotSpeed << std::endl;
+  
+  std::cout << sstream.str();
 }
 

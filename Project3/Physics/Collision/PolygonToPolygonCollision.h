@@ -173,7 +173,7 @@ public:
 
     // collision
 
-    p_contact = new Contact;
+    p_contact = Contact::newContact();
     p_contact->manifold.localNormal = flip ? -refFaceNormal : refFaceNormal;
     p_contact->manifold.penetration = 0;
 

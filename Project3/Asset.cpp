@@ -8,6 +8,7 @@ struct Asset::Private
 {
   Mesh * mesh;
   Texture * texture;
+  
 };
 
 Asset::Asset():

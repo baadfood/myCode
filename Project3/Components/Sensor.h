@@ -8,9 +8,13 @@ public:
   Sensor();
   ~Sensor();
   
-  virtual void updateLogic(glm::u64 p_nanos);
-  void addSensorFixture(Fixture* p_sensorFixture);
+  void setEnabled(bool p_value);
   
+  virtual void updateLogic(glm::u64 p_nanos);
+  virtual void addFixture(Fixture * p_fix);
+  void addSensorFixture(Fixture* p_sensorFixture);
+  virtual void computeAabb();
+
   std::vector<Contact *> const & getSensorContacts();
   
 private:

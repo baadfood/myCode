@@ -15,6 +15,8 @@
 #include "Physics/CollisionIsland.h"
 #include "QuadTree.h"
 
+#include "Physics/Collision/CollisionHandler.h"
+
 #include <atomic>
 #include <map>
 
@@ -42,6 +44,10 @@ d(new Private())
   d->collisionDetector.registerCollisionHandler(Shape::ePolygon, Shape::ePolygon, new PolygonToPolygonCollision);
   d->collisionDetector.registerCollisionHandler(Shape::eCircle, Shape::ePolygon, new CircleToPolygonCollision);
   d->collisionDetector.registerCollisionHandler(Shape::ePolygon, Shape::eCircle, new InvertCollision(new(CircleToPolygonCollision)));
+  CollisionHandler::set(Shape::eCircle, Shape::eCircle, new CircleToCircleCollision);
+  CollisionHandler::set(Shape::ePolygon, Shape::ePolygon, new PolygonToPolygonCollision);
+  CollisionHandler::set(Shape::eCircle, Shape::ePolygon, new CircleToPolygonCollision);
+  CollisionHandler::set(Shape::ePolygon, Shape::eCircle, new InvertCollision(new(CircleToPolygonCollision)));
 }
 
 PhysicsManager::~PhysicsManager()
@@ -481,5 +487,5 @@ void PhysicsManager::advance(GameState * p_state)
   sstream << "Physicsmanager processed islands in " << ticksNow - startTicks << std::endl;
   startTicks = ticksNow;
   
-//  std::cout << sstream.str();
+  std::cout << sstream.str();
 }

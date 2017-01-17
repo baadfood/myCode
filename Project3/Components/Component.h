@@ -23,11 +23,12 @@ public:
 
   virtual void updateLogic(glm::u64 p_nanos);
   
-  void advance(glm::u64 p_nanos, Object * p_object);
-  void computeAabb();
+  virtual void advance(glm::u64 p_nanos, Object * p_object);
+  virtual void computeAabb();
   AABB const & getAabb() const;
+  AABB & getAabb();
   
-  void addFixture(Fixture * p_fix);
+  virtual void addFixture(Fixture * p_fix);
   void addAsset(Asset * p_asset);
 
   MassData const & getMassdata() const;
@@ -35,8 +36,10 @@ public:
   void calculateMassData(MassData & p_massData);
 
   Transform2d const & getTransform2d() const;
+  Transform2d const & getWorldTransform() const;
   void updateTransform(glm::i64vec2 const & p_origin = glm::i64vec2(0, 0), glm::i64 p_worldPerPixel = 1, glm::vec2 p_scale = glm::vec2(1,1));
   
+  void setWorldPos(glm::i64vec2 p_pos);
   void setPosition(glm::i64vec2 p_pos);
   void setAngle(glm::float32 p_angle);
   
@@ -50,6 +53,7 @@ public:
   
   void setObject(Object* p_object);
   Object * getObject();
+  void updatePosition(Object* p_object);
   
 private:
   struct Private;

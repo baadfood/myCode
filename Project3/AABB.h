@@ -33,6 +33,12 @@ struct AABB
       m_halfSize = p_other.m_halfSize;
       return *this;
     }
+    if(p_other.m_halfSize.x == 0
+    && p_other.m_halfSize.y == 0)
+    {
+      return *this;
+    }
+
     glm::i64vec2 low;
     glm::i64vec2 high;
     

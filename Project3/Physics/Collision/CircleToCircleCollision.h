@@ -33,7 +33,7 @@ public:
       return false;
     }
 
-    p_contact = new Contact;
+    p_contact = Contact::newContact();
     glm::f64vec2 normal = static_cast<glm::f64vec2>(circle2Pos - circle1Pos) / distance;
 
     p_contact->contactFriction = std::sqrt(p_fix1.friction * p_fix2.friction);

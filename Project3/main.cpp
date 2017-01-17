@@ -26,6 +26,9 @@
 #include "Components/Component.h"
 #include "AI/BasicAi.h"
 
+#include "Components/Sensor.h"
+#include "Components/Engine.h"
+
 //FILE _iob[] = { *stdin, *stdout, *stderr };
 #include <SDL.h>
 
@@ -58,7 +61,7 @@ Asset * getBoxAsset()
   }
   
   Asset * fighterAsset(new Asset());
-  fighterAsset->setTexture(new Texture("./res/texture.jpg"));
+  fighterAsset->setTexture(new Texture("./res/fighter.png"));
   fighterAsset->setMesh(new Mesh(vertices, indices));
   return fighterAsset;
 }
@@ -73,10 +76,10 @@ Asset * getSensorAsset()
   }
   std::vector<Vertex> vertices;
 
-  vertices.emplace_back(glm::vec3(-1, -1, 0), glm::vec2(0, 0), glm::vec3(0, 0, -1));
-  vertices.emplace_back(glm::vec3(1, -1, 0), glm::vec2(0, 0), glm::vec3(0, 0, -1));
-  vertices.emplace_back(glm::vec3(2, 30, 0), glm::vec2(0, 1), glm::vec3(0, 0, -1));
-  vertices.emplace_back(glm::vec3(-2, 30, 0), glm::vec2(1, 0), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(12, 40, 0), glm::vec2(0, 1), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(0, 41, 0), glm::vec2(1, 1), glm::vec3(0, 0, -1));
+  vertices.emplace_back(glm::vec3(-12, 40, 0), glm::vec2(1, 0), glm::vec3(0, 0, -1));
 
   unsigned int indics[] = { 0, 1, 2,
     0, 2, 3
@@ -90,7 +93,7 @@ Asset * getSensorAsset()
   }
   
   Asset * fighterAsset(new Asset());
-  fighterAsset->setTexture(new Texture("./res/texture.png"));
+  fighterAsset->setTexture(new Texture("./res/sensor.png"));
   fighterAsset->setMesh(new Mesh(vertices, indices));
   s_asset = fighterAsset;
   return fighterAsset;
@@ -98,7 +101,120 @@ Asset * getSensorAsset()
 
 void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * tree)
 {
-  Object * object = new Object();
+  Object * object = new Object(std::to_string(p_objects.size() + 1));
+  BasicAi * ai = new BasicAi();
+  ai->setObject(object);
+  object->setAi(ai);
+  
+  double power = 4;
+
+  double rand = fRand(0, 2 * 3.1415926);
+
+  float cosCounter = cosf(rand);
+  float sinCounter = sinf(rand);
+  float rotspeed = 0;
+/*if (p_objects.size() == 0)
+  {
+    rotspeed = 31.415926;
+  }*/
+
+
+  Component * objectComponent1 = new Component();
+  
+  objectComponent1->setAngle(0);
+  objectComponent1->setPosition(glm::i64vec2(0, 0));
+  objectComponent1->addAsset(p_asset);
+  Component * objectComponent2 = new Component();
+  
+  objectComponent2->setAngle(3.1415912/4);
+  objectComponent2->setPosition(glm::i64vec2(0, OBJTOWORLD*0.5));
+  objectComponent2->addAsset(p_asset);
+
+  object->addComponent(objectComponent1);
+  object->addComponent(objectComponent2);
+//   object->addComponent(objectSensor);
+  object->setRot(0);
+//   object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() * 4 + OBJTOWORLD * 30);
+//   object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() * 4 + OBJTOWORLD * 30);
+  object->setXPos(0);
+  object->setYPos(-OBJTOWORLD*6);
+  object->updateTransform();
+  object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
+  object->setRotSpeed(0);
+  object->setSpeed(glm::i64vec2(0, OBJTOWORLD*10));
+  std::vector<glm::f64vec2> vertices;
+  
+//   ai->addSensor(objectSensor);
+  /**
+  CircleShape * shape = new CircleShape;
+  shape->setPos(glm::i64vec2(0, 0));
+  shape->setRadius(OBJTOWORLD*2);
+  /*/
+//   PolygonShape * sensorShape = new PolygonShape;
+//   std::vector<glm::f64vec2> vertices;
+//   vertices.resize(4);
+//   vertices[0] = glm::f64vec2(0, 0);
+//   vertices[1] = glm::f64vec2(-OBJTOWORLD, OBJTOWORLD*10);
+//   vertices[2] = glm::f64vec2(0, OBJTOWORLD*11);
+//   vertices[3] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD*10);
+//   sensorShape->setVertices(vertices);
+
+//   Fixture * sensorFixture(new Fixture);
+//   sensorFixture->density = 0;
+//   sensorFixture->friction = 0;
+//   sensorFixture->restitution = 0;
+//   sensorFixture->object = object;
+//   sensorFixture->shape = sensorShape;
+//   sensorFixture->type = Fixture::eSensor;
+//   
+//   objectSensor->addSensorFixture(sensorFixture);
+
+  
+  PolygonShape * shape1 = new PolygonShape;
+  vertices.resize(4);
+  vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
+  vertices[1] = glm::f64vec2(OBJTOWORLD, -OBJTOWORLD);
+  vertices[2] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD, OBJTOWORLD);
+
+  shape1->setVertices(vertices);
+  //*/
+  Fixture * fixture(new Fixture);
+  fixture->density = 0.0000000000000000000001;
+  fixture->friction = 0.2;
+  fixture->restitution = 1;
+  fixture->object = object;
+  fixture->shape = shape1;
+  fixture->type = Fixture::eNormal;
+  
+  objectComponent1->addFixture(fixture);
+
+  PolygonShape * shape2 = new PolygonShape;
+  vertices.resize(4);
+  vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
+  vertices[1] = glm::f64vec2(OBJTOWORLD, -OBJTOWORLD);
+  vertices[2] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD, OBJTOWORLD);
+  shape2->setVertices(vertices);
+  
+  Fixture * fixture2(new Fixture);
+  fixture2->density = 0.0000000000000000000001;
+  fixture2->friction = 0.2;
+  fixture2->restitution = 1;
+  fixture2->object = object;
+  fixture2->shape = shape2;
+  fixture2->type = Fixture::eNormal;
+  
+  objectComponent2->addFixture(fixture2);
+  object->updateMass();
+
+  tree->addObject(object);
+  p_objects.push_back(object);
+}
+
+void addMissile(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * tree)
+{
+  Object * object = new Object(std::to_string(p_objects.size() + 1));
   BasicAi * ai = new BasicAi();
   ai->setObject(object);
   object->setAi(ai);
@@ -116,11 +232,17 @@ void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * 
   }*/
 
   Sensor * objectSensor = new Sensor();
-  
   objectSensor->setAngle(0);
   objectSensor->setPosition(glm::i64vec2(0, 0));
   objectSensor->addAsset(getSensorAsset());
 
+
+  Component * reticule = new Component();
+  reticule->setAngle(0);
+  reticule->setPosition(glm::i64vec2(0, 0));
+  reticule->addAsset(p_asset);
+  ai->setTargettingReticule(reticule);
+  
   Component * objectComponent1 = new Component();
   
   objectComponent1->setAngle(0);
@@ -135,15 +257,53 @@ void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * 
   object->addComponent(objectComponent1);
   object->addComponent(objectComponent2);
   object->addComponent(objectSensor);
-  object->setRot(0);
-  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() * 4 + OBJTOWORLD * 30);
-  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() * 4 + OBJTOWORLD * 30);
+  object->addComponent(reticule);
+  object->setRot(rand);
+  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 30);
+  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 30);
+//  object->setXPos(-OBJTOWORLD*12);
+//  object->setYPos(OBJTOWORLD*3);
   object->updateTransform();
   object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
-  object->setRotSpeed(1);
+  object->setRotSpeed(0);
+  object->setSpeed(glm::i64vec2(-OBJTOWORLD*2, 0));
 //  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()*2), -sinCounter * OBJTOWORLD * std::sqrt(p_objects.size()*2)));
   
   ai->addSensor(objectSensor);
+  
+  Engine * forwardEngine = new Engine(OBJTOWORLD/1000);
+  forwardEngine->setAngle(0);
+  forwardEngine->setPosition(glm::i64vec2(0, -OBJTOWORLD));
+
+//   Engine * clockwiseEngine1 = new Engine(OBJTOWORLD/100);
+//   clockwiseEngine1->setAngle(3.1415912/2);
+//   clockwiseEngine1->setPosition(glm::i64vec2(0, -OBJTOWORLD));
+
+  Engine * clockwiseEngine2 = new Engine(OBJTOWORLD/100);
+  clockwiseEngine2->setAngle(-3.1415912/2);
+  clockwiseEngine2->setPosition(glm::i64vec2(0, OBJTOWORLD));
+
+//   Engine * cClockwiseEngine1 = new Engine(OBJTOWORLD/100);
+//   cClockwiseEngine1->setAngle(-3.1415912/2);
+//   cClockwiseEngine1->setPosition(glm::i64vec2(0, -OBJTOWORLD));
+
+  Engine * cClockwiseEngine2 = new Engine(OBJTOWORLD/100);
+  cClockwiseEngine2->setAngle(3.1415912/2);
+  cClockwiseEngine2->setPosition(glm::i64vec2(0, OBJTOWORLD));
+
+  
+  object->addComponent(forwardEngine);
+//   object->addComponent(clockwiseEngine1);
+//   object->addComponent(cClockwiseEngine1);
+  object->addComponent(clockwiseEngine2);
+  object->addComponent(cClockwiseEngine2);
+  ai->addEngine(forwardEngine, BasicAi::eForward);
+//   ai->addEngine(clockwiseEngine1, BasicAi::eClockwiseTurn);
+//   ai->addEngine(cClockwiseEngine1, BasicAi::eCounterCTurn);
+  ai->addEngine(clockwiseEngine2, BasicAi::eClockwiseTurn);
+  ai->addEngine(cClockwiseEngine2, BasicAi::eCounterCTurn);
+
+  
   /**
   CircleShape * shape = new CircleShape;
   shape->setPos(glm::i64vec2(0, 0));
@@ -152,10 +312,10 @@ void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * 
   PolygonShape * sensorShape = new PolygonShape;
   std::vector<glm::f64vec2> vertices;
   vertices.resize(4);
-  vertices[0] = glm::f64vec2(OBJTOWORLD * 2, OBJTOWORLD * 30);
-  vertices[1] = glm::f64vec2(OBJTOWORLD, -OBJTOWORLD);
-  vertices[2] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
-  vertices[3] = glm::f64vec2(-OBJTOWORLD * 2, OBJTOWORLD * 30);
+  vertices[0] = glm::f64vec2(0, 0);
+  vertices[1] = glm::f64vec2(-OBJTOWORLD*22, OBJTOWORLD*40);
+  vertices[2] = glm::f64vec2(0, OBJTOWORLD*41);
+  vertices[3] = glm::f64vec2(OBJTOWORLD*22, OBJTOWORLD*40);
   sensorShape->setVertices(vertices);
 
   Fixture * sensorFixture(new Fixture);
@@ -168,6 +328,24 @@ void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * 
   
   objectSensor->addSensorFixture(sensorFixture);
 
+  PolygonShape * reticuleShape = new PolygonShape;
+  vertices.resize(4);
+  vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
+  vertices[1] = glm::f64vec2(OBJTOWORLD, -OBJTOWORLD);
+  vertices[2] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD, OBJTOWORLD);
+
+  reticuleShape->setVertices(vertices);
+  //*/
+  Fixture * retFixture(new Fixture);
+  retFixture->density = 0.0;
+  retFixture->friction = 0.0;
+  retFixture->restitution = 0.0;
+  retFixture->object = object;
+  retFixture->shape = reticuleShape;
+  retFixture->type = Fixture::eSensor;
+  
+  reticule->addFixture(retFixture);
   
   PolygonShape * shape1 = new PolygonShape;
   vertices.resize(4);
@@ -221,10 +399,11 @@ void generateTestObjects(GameState & p_state)
 {
   Asset * asset(getBoxAsset());
   for(int index = 0;
-  index < 2000;
+  index < 1;
     index++)
   {
     addObject(p_state.objects, asset, p_state.spatialTree);
+    addMissile(p_state.objects, asset, p_state.spatialTree);
     p_state.spatialTree = p_state.spatialTree->top();
   }
 }
@@ -256,6 +435,7 @@ int main(int argc, char ** argv)
   manager.setGameState(&state);
 
   unsigned int tickStart = SDL_GetTicks();
+  
   unsigned int frames = 0;
   unsigned int lastTicks = SDL_GetTicks();
 

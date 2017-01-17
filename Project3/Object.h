@@ -111,6 +111,8 @@ public:
   virtual glm::f64 getInvInertia() const;
 
   virtual void applyImpulse(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector);
+  virtual void storeImpulse(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector);
+  virtual void applyStoredImpulses();
 
   virtual bool isInCorrectQuadtreeNode() const;
 
@@ -122,6 +124,8 @@ public:
 
   void updateIsland();
   void setAi(Ai* p_ai);
+  void print();
+  void calculateImpluseEffect(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector, glm::i64vec2 & p_accel, float & p_rotAccel);
 
 private:
   std::vector<std::shared_ptr<UserInputHandler>> m_inputHandlers;
@@ -162,6 +166,8 @@ private:
   Transform2d m_physicsTransform;
 
   bool m_inCorrectQuadtreeNode;
+  glm::i64vec2 m_stored_speed;
+  glm::float32 m_stored_rotSpeed;
 };
 
 #endif

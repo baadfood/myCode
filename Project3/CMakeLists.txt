@@ -7,7 +7,23 @@ find_package(SDL2 REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Boost REQUIRED)
+find_package(Zmq REQUIRED)
 
+set(Project3_RES
+./res/objectShader.vs
+./res/texture.jpg
+./res/monkey.obj
+./res/sensor.png
+./res/fighter.png
+./res/basicShader.vs
+./res/objectShader2.fs
+./res/F5S4.png
+./res/objectShader.fs
+./res/F5S4_.png
+./res/basicShader.fs
+./res/objectShader2.vs
+)
+    
 set(Project3_SRCS
 ./CameraWorldBased.cpp
 ./Circle.cpp
@@ -46,8 +62,10 @@ set(Project3_SRCS
 ./Shader.cpp
 ./Components/Component.cpp
 ./Components/Sensor.cpp
+./Components/Engine.cpp
 ./AI/BasicAi.cpp
 ./AI/Ai.cpp
+./Physics/Collision/CollisionHandler.cpp
 )
 
 set(Project3_HDRS
@@ -80,6 +98,7 @@ set(Project3_HDRS
 ./Physics/Shape.h
 ./Physics/Collision/CircleToCircleCollision.h
 ./Physics/Collision/Collision.h
+./Physics/Collision/CollisionHandler.h
 ./Physics/Collision/CircleToPolygonCollision.h
 ./Physics/Collision/PolygonToPolygonCollision.h
 ./Physics/Contact/CircleContact.h
@@ -112,6 +131,7 @@ set(Project3_HDRS
 ./PhysicsManager.h
 ./Components/Component.h
 ./Components/Sensor.h
+./Components/Engine.h
 ./AI/BasicAi.h
 ./AI/Ai.h
 )
@@ -122,7 +142,25 @@ set(Project3_INLS./InputHandlers/MoveOnKeyDownHandler.inl
 ./InputHandlers/RightClickMoveHandler.inl
 )
 
-add_executable(Project3 ${Project3_SRCS} ${Project3_HDRS} ${Project3_INLS})
+foreach(RES_FILE ${Project3_RES})
+
+set(Project3_RESC ${Project3_RESC} "${CMAKE_CURRENT_BINARY_DIR}/${RES_FILE}")
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${RES_FILE}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${RES_FILE}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${RES_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${RES_FILE})
+    
+    set_source_files_properties(
+    ${CMAKE_CURRENT_BINARY_DIR}/${RES_FILE}
+    PROPERTIES
+    GENERATED TRUE
+    HEADER_FILE_ONLY TRUE)
+    
+endforeach()
+
+
+add_executable(Project3 ${Project3_SRCS} ${Project3_HDRS} ${Project3_INLS} ${Project3_RESC})
 
 if(NOT GLM_INCLUDE_DIRS)
   find_path(GLM_INCLUDE_DIRS NAMES glm/glm.hpp HINTS "${CMAKE_SOURCE_DIR}/glm")
@@ -133,4 +171,5 @@ endif()
 message("GLM_INCLUDE_DIRS \"${GLM_INCLUDE_DIRS}\"")
 include_directories(${GLM_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${GLEW_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
 
-target_link_libraries(Project3 ${SDL2_LIBRARY} ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES})
+target_link_libraries(Project3 ${SDL2_LIBRARY} ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES} ${ZMQ_LIB})
+

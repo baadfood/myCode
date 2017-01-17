@@ -16,6 +16,7 @@ public:
   ~ShapeCollisionDetector();
 
   bool getCollisions(Object* p_object1, Object* p_object2, std::vector< Contact * >& p_results);
+  
 
   void registerCollisionHandler(int p_type1, int p_type2, Collision * p_handler);
 

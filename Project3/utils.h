@@ -19,6 +19,27 @@ SpinlockThreadpool & getThreadPool();
 
 namespace mika
 {
+  /*
+  class IFunction
+  {
+    double getValue(double p_value) const = 0;
+    double getDValue(double p_value) const = 0;
+  };
+  */
+  const double pi = std::acos(-1);
+  
+  void inline fixAngle(float & p_angle)
+  {
+    if(p_angle > mika::pi)
+    {
+      p_angle = -(2*mika::pi - p_angle);
+    }
+    else if(p_angle < -mika::pi)
+    {
+      p_angle = (2*mika::pi + p_angle);
+    }
+  }
+  
   template<class T>
   inline bool checkDuplicates(std::vector<T, std::allocator<T> > & p_vector)
   {

@@ -18,6 +18,7 @@ struct Component::Private
   Transform2D graphicsTransform;
   glm::mat4 model;
   Object * object;
+  bool posIsWorldPos = false;
 
   MassData massData;
 };
@@ -30,6 +31,13 @@ d(new Private)
 Component::~Component()
 {
 }
+
+void Component::setWorldPos(glm::i64vec2 p_pos)
+{
+  d->posIsWorldPos = true;
+  d->transform.pos = p_pos;
+}
+
 
 Object* Component::getObject()
 {
@@ -63,7 +71,23 @@ const glm::mat4& Component::getModel() const
 
 void Component::advance(glm::u64 p_nanos, Object * p_object)
 {
-  d->worldTransform = d->transform * p_object->getTransform2d();
+}
+
+void Component::updatePosition(Object* p_object)
+{
+  if(d->posIsWorldPos)
+  {
+    d->worldTransform.pos = d->transform.pos;
+  }
+  else
+  {
+    d->worldTransform = d->transform * p_object->getTransform2d();
+  }
+}
+
+AABB& Component::getAabb()
+{
+  return d->aabb;
 }
 
 void Component::computeAabb()
@@ -151,6 +175,11 @@ const std::vector<Fixture * >& Component::getFixtures() const
 const Transform2d& Component::getTransform2d() const
 {
   return d->transform;
+}
+
+const Transform2d& Component::getWorldTransform() const
+{
+  return d->worldTransform;
 }
 
 void Component::setAngle(glm::float32 p_angle)

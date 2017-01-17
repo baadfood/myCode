@@ -29,6 +29,7 @@ struct GameState
   // Input handling stuff
   std::vector<UserInputHandler *> globalHandlers;
   Object * focusedObject;
+  unsigned int focusedObjectIndex;
   std::unordered_set<SDL_Keysym> keysHeldDown;
   //std::shared_ptr<Object> focusedObject;
 

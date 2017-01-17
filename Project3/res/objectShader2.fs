@@ -30,7 +30,7 @@ void main() {
     vec3 surfaceToCamera = normalize(cameraPosition - surfacePos);
 
     //ambient
-    vec3 ambient = light.ambientCoefficient * surfaceColor.rgb * light.intensities;
+    vec3 ambient = surfaceColor.rgb * light.intensities * light.ambientCoefficient;
 
     //diffuse
     float diffuseCoefficient = max(0.0, dot(normal, surfaceToLight));
@@ -56,5 +56,5 @@ void main() {
     vec3 mapped = vec3(1.0) - exp(-linearColor * exposure);
     mapped = pow(mapped, vec3(1.0 / gamma));
 
-    finalColor = vec4(surfaceColor.r, surfaceColor.g, surfaceColor.a, surfaceColor.a);
+    finalColor = vec4(mapped.r, mapped.g, mapped.b, surfaceColor.a);
 }

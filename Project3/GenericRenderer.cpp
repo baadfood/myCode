@@ -55,14 +55,14 @@ GenericRenderer::GenericRenderer()
   m_cameraExposureUnifName = mika::getConstChar(std::string("exposure"));
   m_lightDistanceModifierUnifName = mika::getConstChar(std::string("lightDistanceModifier"));
 
-  m_lightPos = glm::vec3(0, 0, -2);
+  m_lightPos = glm::vec3(0, 0, -2*OBJTOWORLD);
   m_lightColor = glm::vec3(1, 1, 1);
-  m_attenuation = 0.000000000000000000000000000000000000001;
-  m_ambient = 1;
+  m_attenuation = 0.0;
+  m_ambient = 0.1;
 
   m_cameraPos = glm::vec3(0, 0, -2);
-  m_exposure = 0.00001;
-  m_lightDistanceModifier = 1;
+  m_exposure = 10;
+  m_lightDistanceModifier = 1.0/OBJTOWORLD;
 
 }
 

@@ -52,7 +52,7 @@ public:
     if(++faceNormal == polygon->vertexCount) faceNormal = 0;
     glm::i64vec2 faceVert2 = polygon->vertices[faceNormal];
 
-    p_contact = new Contact;
+    p_contact = Contact::newContact();
     p_contact->contactFriction = std::sqrt(p_fix1.friction * p_fix2.friction);
     p_contact->contactRestitution = std::sqrt(p_fix1.restitution * p_fix2.restitution);
     p_contact->manifold.pointCount = 0;
@@ -88,7 +88,7 @@ public:
       {
         if(toDot1.x * toDot1.x + toDot1.y * toDot1.y > radiusSqr)
         {
-          delete p_contact;
+          Contact::freeContact(p_contact);
           return false;
         }
         
@@ -103,7 +103,7 @@ public:
       {
         if(toDot2.x * toDot2.x + toDot2.y * toDot2.y > radiusSqr)
         {
-          delete p_contact;
+          Contact::freeContact(p_contact);
           return false;
         }
         
@@ -119,7 +119,7 @@ public:
         glm::f64vec2 normal = polygon->normals[faceNormal];
         if(glm::dot(glm::f64vec2(circlePos - faceVert1), normal) > circleRadius)
         {
-          delete p_contact;
+          Contact::freeContact(p_contact);
           return false;
         }
         normal = -p_tf2.applyRotation(normal);

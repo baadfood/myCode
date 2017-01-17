@@ -7,9 +7,58 @@
 #include "utils.h"
 #include "Components/Component.h"
 
+#include <vector>
+#include <atomic>
+
+namespace
+{
+  std::vector<Contact*> s_freeContacts (4000, nullptr);
+  std::atomic<int> s_nextFreeContactsIndex(0);
+}
+
 class Contact
 {
+private:
+  
+  Contact() {};
+  ~Contact() {};
 public:
+  static void freeContact(Contact * p_contact)
+  {
+    int free = s_nextFreeContactsIndex.fetch_add(1);
+    if(free < s_freeContacts.size())
+    {
+      s_freeContacts[free] = p_contact;
+    }
+    else
+    {
+      delete p_contact;
+      s_nextFreeContactsIndex--;
+    }
+  }
+  static Contact * newContact()
+  {
+    Contact * retVal;
+    int index = s_nextFreeContactsIndex.fetch_sub(1);
+    index--;
+    if(index < 0)
+    {
+      retVal = new Contact();
+      s_nextFreeContactsIndex++;
+    }
+    else
+    {
+      retVal = s_freeContacts[index];
+    }
+    return retVal;
+  }
+
+
+  inline Object * getNotMe(Object * p_me)
+  {
+    return fixtures[0]->object == p_me ? fixtures[1]->object : fixtures[0]->object;
+  }
+  
   Component * components[2];
   Fixture * fixtures[2];
   int vertexIndices[2];
