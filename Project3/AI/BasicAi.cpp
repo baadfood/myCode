@@ -59,7 +59,7 @@ bool findObject(Contact const * p_contact, Object * p_object)
 void BasicAi::updateLogic(glm::i64 p_nanos)
 {
   Ai::updateLogic(p_nanos);
-  
+
   Object * myObject = getObject();
   Object * newTarget = d->target;
   bool found = false;
@@ -153,20 +153,21 @@ void BasicAi::updateLogic(glm::i64 p_nanos)
 //      aimVector = glm::normalize(targetProjectedPos - myProjectedPos);
 //      std::cout << "Time To Target " << timeToTarget << std::endl;
 //      d->reticule->setWorldPos(glm::i64vec2(myProjectedPos));
-      std::cout << "Relative speed coeff " << std::min(0.99, std::abs(rotatedRelativeSpeed.y /(d->forwardAccel*2.0))) << std::endl;
-      std::cout << "Relative y speed " << rotatedRelativeSpeed.y << std::endl;
-      aimVector = glm::normalize(unitVectorToTarget + (unitVectorRelativeSpeed * std::min(2.0, std::abs(rotatedRelativeSpeed.y /(d->forwardAccel*2.0)))));
+//      std::cout << "Relative speed coeff " << std::min(0.99, std::abs(rotatedRelativeSpeed.y /(d->forwardAccel*2.0))) << std::endl;
+//      std::cout << "Relative y speed " << rotatedRelativeSpeed.y << std::endl;
+      aimVector = glm::normalize(unitVectorToTarget + (unitVectorRelativeSpeed * std::min(4.0, std::abs(rotatedRelativeSpeed.y / (d->forwardAccel*1.0)))));
     }
     
-    for(Sensor * sensor : d->sensors)
+	glm::float32 angleToAimAt = atan2(-aimVector.x, aimVector.y);
+	glm::float32 angleDiff = angleToAimAt - myAngle;
+	//    glm::float32 timeToHeading = std::abs(angleDiff / myObject->getRotSpeed());
+	mika::fixAngle(angleDiff);
+	
+	for(Sensor * sensor : d->sensors)
     {
-      sensor->setAngle(atan2(-aimVector.x, aimVector.y) - myAngle);
+      sensor->setAngle(angleDiff);
     }
     
-    glm::float32 angleToAimAt = atan2(-aimVector.x, aimVector.y);
-    glm::float32 angleDiff = angleToAimAt - myAngle;
-//    glm::float32 timeToHeading = std::abs(angleDiff / myObject->getRotSpeed());
-    mika::fixAngle(angleDiff);
     
     // TODO This logic might be bad, I have no idea.
     if(std::abs(angleDiff) < mika::pi/16)
@@ -271,9 +272,8 @@ void BasicAi::updateLogic(glm::i64 p_nanos)
   {
     for(Sensor * sensor : d->sensors)
     {
-      sensor->setAngle(0);
+//		sensor->setAngle(0);
     }
-    
   }
 }
 

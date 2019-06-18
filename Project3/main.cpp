@@ -66,6 +66,32 @@ Asset * getBoxAsset()
   return fighterAsset;
 }
 
+Asset* getEngineAsset()
+{
+	std::vector<Vertex> vertices;
+
+	vertices.emplace_back(glm::vec3(0.25, 0.5, 0), glm::vec2(0, 0), glm::vec3(0, 0, -1));
+	vertices.emplace_back(glm::vec3(-0.25, 0.5, 0), glm::vec2(0, 1), glm::vec3(0, 0, -1));
+	vertices.emplace_back(glm::vec3(-0.5, -0.5, 0), glm::vec2(1, 1), glm::vec3(0, 0, -1));
+	vertices.emplace_back(glm::vec3(0.5, -0.5, 0), glm::vec2(1, 0), glm::vec3(0, 0, -1));
+
+	unsigned int indics[] = { 0, 1, 2,
+	  0, 2, 3
+	};
+	std::vector<unsigned int> indices;
+	for (int index = 0;
+		index < sizeof(indics) / sizeof(unsigned int);
+		index++)
+	{
+		indices.push_back(indics[index]);
+	}
+
+	Asset* fighterAsset(new Asset());
+	fighterAsset->setTexture(new Texture("./res/sensor.png"));
+	fighterAsset->setMesh(new Mesh(vertices, indices));
+	return fighterAsset;
+}
+
 
 Asset * getSensorAsset()
 {
@@ -124,14 +150,8 @@ void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * 
   objectComponent1->setAngle(0);
   objectComponent1->setPosition(glm::i64vec2(0, 0));
   objectComponent1->addAsset(p_asset);
-  Component * objectComponent2 = new Component();
-  
-  objectComponent2->setAngle(3.1415912/4);
-  objectComponent2->setPosition(glm::i64vec2(0, OBJTOWORLD*0.5));
-  objectComponent2->addAsset(p_asset);
 
   object->addComponent(objectComponent1);
-  object->addComponent(objectComponent2);
 //   object->addComponent(objectSensor);
   object->setRot(0);
 //   object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() * 4 + OBJTOWORLD * 30);
@@ -141,7 +161,7 @@ void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * 
   object->updateTransform();
   object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
   object->setRotSpeed(0);
-  object->setSpeed(glm::i64vec2(0, OBJTOWORLD*10));
+  object->setSpeed(glm::i64vec2(0, OBJTOWORLD*1));
   std::vector<glm::f64vec2> vertices;
   
 //   ai->addSensor(objectSensor);
@@ -189,23 +209,6 @@ void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * 
   
   objectComponent1->addFixture(fixture);
 
-  PolygonShape * shape2 = new PolygonShape;
-  vertices.resize(4);
-  vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
-  vertices[1] = glm::f64vec2(OBJTOWORLD, -OBJTOWORLD);
-  vertices[2] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
-  vertices[3] = glm::f64vec2(-OBJTOWORLD, OBJTOWORLD);
-  shape2->setVertices(vertices);
-  
-  Fixture * fixture2(new Fixture);
-  fixture2->density = 0.0000000000000000000001;
-  fixture2->friction = 0.2;
-  fixture2->restitution = 1;
-  fixture2->object = object;
-  fixture2->shape = shape2;
-  fixture2->type = Fixture::eNormal;
-  
-  objectComponent2->addFixture(fixture2);
   object->updateMass();
 
   tree->addObject(object);
@@ -236,7 +239,6 @@ void addMissile(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree *
   objectSensor->setPosition(glm::i64vec2(0, 0));
   objectSensor->addAsset(getSensorAsset());
 
-
   Component * reticule = new Component();
   reticule->setAngle(0);
   reticule->setPosition(glm::i64vec2(0, 0));
@@ -248,48 +250,45 @@ void addMissile(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree *
   objectComponent1->setAngle(0);
   objectComponent1->setPosition(glm::i64vec2(0, 0));
   objectComponent1->addAsset(p_asset);
-  Component * objectComponent2 = new Component();
-  
-  objectComponent2->setAngle(3.1415912/4);
-  objectComponent2->setPosition(glm::i64vec2(0, OBJTOWORLD*0.5));
-  objectComponent2->addAsset(p_asset);
 
   object->addComponent(objectComponent1);
-  object->addComponent(objectComponent2);
   object->addComponent(objectSensor);
   object->addComponent(reticule);
-  object->setRot(rand);
+  object->setRot(0);
   object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 30);
   object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() + OBJTOWORLD * 30);
 //  object->setXPos(-OBJTOWORLD*12);
 //  object->setYPos(OBJTOWORLD*3);
   object->updateTransform();
-  object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
-  object->setRotSpeed(0);
-  object->setSpeed(glm::i64vec2(-OBJTOWORLD*2, 0));
+  object->setHalfSize(glm::u64vec2(OBJTOWORLD/4, OBJTOWORLD/4));
+  object->setRotSpeed(1);
+  object->setSpeed(glm::i64vec2(OBJTOWORLD * 0.4, 0));
 //  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()*2), -sinCounter * OBJTOWORLD * std::sqrt(p_objects.size()*2)));
   
   ai->addSensor(objectSensor);
   
-  Engine * forwardEngine = new Engine(OBJTOWORLD/1000);
+  Engine * forwardEngine = new Engine(OBJTOWORLD/10000);
   forwardEngine->setAngle(0);
   forwardEngine->setPosition(glm::i64vec2(0, -OBJTOWORLD));
+//  forwardEngine->addAsset(getEngineAsset());
 
 //   Engine * clockwiseEngine1 = new Engine(OBJTOWORLD/100);
 //   clockwiseEngine1->setAngle(3.1415912/2);
 //   clockwiseEngine1->setPosition(glm::i64vec2(0, -OBJTOWORLD));
 
-  Engine * clockwiseEngine2 = new Engine(OBJTOWORLD/100);
+  Engine * clockwiseEngine2 = new Engine(OBJTOWORLD/100000);
   clockwiseEngine2->setAngle(-3.1415912/2);
   clockwiseEngine2->setPosition(glm::i64vec2(0, OBJTOWORLD));
+//  clockwiseEngine2->addAsset(getEngineAsset());
 
 //   Engine * cClockwiseEngine1 = new Engine(OBJTOWORLD/100);
 //   cClockwiseEngine1->setAngle(-3.1415912/2);
 //   cClockwiseEngine1->setPosition(glm::i64vec2(0, -OBJTOWORLD));
 
-  Engine * cClockwiseEngine2 = new Engine(OBJTOWORLD/100);
+  Engine * cClockwiseEngine2 = new Engine(OBJTOWORLD/100000);
   cClockwiseEngine2->setAngle(3.1415912/2);
   cClockwiseEngine2->setPosition(glm::i64vec2(0, OBJTOWORLD));
+//  cClockwiseEngine2->addAsset(getEngineAsset());
 
   
   object->addComponent(forwardEngine);
@@ -349,11 +348,10 @@ void addMissile(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree *
   
   PolygonShape * shape1 = new PolygonShape;
   vertices.resize(4);
-  vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
-  vertices[1] = glm::f64vec2(OBJTOWORLD, -OBJTOWORLD);
-  vertices[2] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
-  vertices[3] = glm::f64vec2(-OBJTOWORLD, OBJTOWORLD);
-
+  vertices[0] = glm::f64vec2(OBJTOWORLD/4, OBJTOWORLD/4);
+  vertices[1] = glm::f64vec2(OBJTOWORLD/4, -OBJTOWORLD/4);
+  vertices[2] = glm::f64vec2(-OBJTOWORLD/4, -OBJTOWORLD/4);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD/4, OBJTOWORLD/4);
   shape1->setVertices(vertices);
   //*/
   Fixture * fixture(new Fixture);
@@ -363,26 +361,26 @@ void addMissile(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree *
   fixture->object = object;
   fixture->shape = shape1;
   fixture->type = Fixture::eNormal;
-  
+
   objectComponent1->addFixture(fixture);
 
-  PolygonShape * shape2 = new PolygonShape;
+  PolygonShape* engine1Shape = new PolygonShape;
   vertices.resize(4);
-  vertices[0] = glm::f64vec2(OBJTOWORLD, OBJTOWORLD);
-  vertices[1] = glm::f64vec2(OBJTOWORLD, -OBJTOWORLD);
-  vertices[2] = glm::f64vec2(-OBJTOWORLD, -OBJTOWORLD);
-  vertices[3] = glm::f64vec2(-OBJTOWORLD, OBJTOWORLD);
-  shape2->setVertices(vertices);
-  
-  Fixture * fixture2(new Fixture);
-  fixture2->density = 0.0000000000000000000001;
-  fixture2->friction = 0.2;
-  fixture2->restitution = 1;
-  fixture2->object = object;
-  fixture2->shape = shape2;
-  fixture2->type = Fixture::eNormal;
-  
-  objectComponent2->addFixture(fixture2);
+  vertices[0] = glm::f64vec2(OBJTOWORLD / 16, OBJTOWORLD / 8);
+  vertices[1] = glm::f64vec2(OBJTOWORLD / 8, -OBJTOWORLD / 8);
+  vertices[2] = glm::f64vec2(-OBJTOWORLD / 8, -OBJTOWORLD / 8);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD / 16, OBJTOWORLD / 8);
+  engine1Shape->setVertices(vertices);
+
+  Fixture* engine1Fix(new Fixture);
+  engine1Fix->density = 0;
+  engine1Fix->friction = 0;
+  engine1Fix->restitution = 0;
+  engine1Fix->object = object;
+  engine1Fix->shape = engine1Shape;
+  engine1Fix->type = Fixture::eSensor;
+  forwardEngine->addFixture(engine1Fix);
+
   object->updateMass();
 
   tree->addObject(object);
@@ -399,10 +397,10 @@ void generateTestObjects(GameState & p_state)
 {
   Asset * asset(getBoxAsset());
   for(int index = 0;
-  index < 1;
+  index < 1000;
     index++)
   {
-    addObject(p_state.objects, asset, p_state.spatialTree);
+//    addObject(p_state.objects, asset, p_state.spatialTree);
     addMissile(p_state.objects, asset, p_state.spatialTree);
     p_state.spatialTree = p_state.spatialTree->top();
   }
@@ -441,15 +439,7 @@ int main(int argc, char ** argv)
 
   while(display.isClosed() == false)
   {
-    unsigned int ticksNow = SDL_GetTicks();
-    if(lastTicks + 20 > ticksNow)
-    {
-      SDL_Delay(lastTicks + 20 - ticksNow);
-      continue;
-    }
-
     manager.progressFrame();
-
   }
 
   SDL_Quit();

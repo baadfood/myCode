@@ -281,7 +281,7 @@ void PhysicsManager::advance(GameState * p_state)
   d->currentIndex.store(0);
 
   unsigned int ticksNow = SDL_GetTicks();
-   sstream << "Physicsmanager moved objects in " << ticksNow - startTicks << std::endl;
+//  sstream << "Physicsmanager moved objects in " << ticksNow - startTicks << '\n';
   startTicks = ticksNow;
 
 
@@ -294,7 +294,7 @@ void PhysicsManager::advance(GameState * p_state)
   p_state->spatialTree->pruneTree();
 
   ticksNow = SDL_GetTicks();
-  sstream << "Physicsmanager updated tree in " << ticksNow - startTicks << std::endl;
+//  sstream << "Physicsmanager updated tree in " << ticksNow - startTicks << '\n';
   startTicks = ticksNow;
 
 
@@ -339,7 +339,7 @@ void PhysicsManager::advance(GameState * p_state)
   }
 
   ticksNow = SDL_GetTicks();
-  sstream << "Physicsmanager got contacts in " << ticksNow - startTicks << std::endl;
+//  sstream << "Physicsmanager got contacts in " << ticksNow - startTicks << '\n';
   startTicks = ticksNow;
   for (Object* object : *d->objectsToUpdate)
   {
@@ -347,7 +347,7 @@ void PhysicsManager::advance(GameState * p_state)
   }
 
   ticksNow = SDL_GetTicks();
-  sstream << "Physicsmanager updated islands in " << ticksNow - startTicks << std::endl;
+//  sstream << "Physicsmanager updated islands in " << ticksNow - startTicks << '\n';
   startTicks = ticksNow;
 
   std::set<CollisionIsland *> islands;
@@ -465,10 +465,10 @@ void PhysicsManager::advance(GameState * p_state)
   */
 
   ticksNow = SDL_GetTicks();
-  sstream << "Physicsmanager got islands in " << ticksNow - startTicks << std::endl;
+ // sstream << "Physicsmanager got islands in " << ticksNow - startTicks << '\n';
   startTicks = ticksNow;
 
-//   std::cout << "Such islands: " << islands.size() << std::endl;
+//  std::cout << "Such islands: " << islands.size() << std::endl;
   
   for(auto island = islands.begin();
       island != islands.end();
@@ -484,7 +484,7 @@ void PhysicsManager::advance(GameState * p_state)
   getThreadPool().waitAndDoTasks();
 
   ticksNow = SDL_GetTicks();
-  sstream << "Physicsmanager processed islands in " << ticksNow - startTicks << std::endl;
+//  sstream << "Physicsmanager processed islands in " << ticksNow - startTicks << '\n';
   startTicks = ticksNow;
   
   std::cout << sstream.str();

@@ -69,7 +69,8 @@ namespace mika
     {
       return false;
     }
-    std::swap(p_vector.back(), *iter);
+	*iter = p_vector.back();
+//    std::swap(p_vector.back(), *iter);
     p_vector.pop_back();
     return true;
   }

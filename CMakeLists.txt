@@ -18,4 +18,9 @@ else()
 #  message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} doesn't support c++11, cannot compile project")
 endif()
 
+set(CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/glew-1.13.0")
+set(CMAKE_LIBRARY_PATH "${CMAKE_CURRENT_SOURCE_DIR}/glew-1.13.0/lib/Release/x64/")
+set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/boost_1_70_0")
+set(ENV{SDL2DIR} "${CMAKE_CURRENT_SOURCE_DIR}/SDL2")
+
 add_subdirectory(Project3)

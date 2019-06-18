@@ -444,12 +444,14 @@ std::vector<Component*> const & Object::getComponents() const
 
 void Object::addComponent(Component * p_component)
 {
+  m_massDirty = true;
   m_components.push_back(p_component);
   p_component->setObject(this);
 }
 
 void Object::removeComponent(Component * p_component)
 {
+  m_massDirty = true;
   mika::removeOne(m_components, p_component);
   p_component->setObject(nullptr);
 }
@@ -528,8 +530,17 @@ glm::f64 Object::getMass() const
   return m_mass;
 }
 
+void Object::setMassDirty()
+{
+	m_massDirty = true;
+}
+
 void Object::updateMass()
 {
+	if (m_massDirty == false)
+	{
+		return;
+	}
   m_mass = 0.0f;
   m_invMass = 0.0f;
   m_inertia = 0.0f;

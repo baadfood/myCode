@@ -15,6 +15,7 @@
 #include "RenderManager.h"
 #include "FpsManager.h"
 
+#include "DebugPrint.h"
 
 struct GameManager::Private
 {
@@ -49,21 +50,22 @@ GameState * GameManager::getGameState()
 bool GameManager::progressFrame()
 {
   d->state->prevFrameTime = d->state->currentFrameTime;
-  d->state->currentFrameTime += 10;
-//   d->state->currentFrameTime = SDL_GetTicks();
+//  d->state->currentFrameTime += 30;
+  d->state->currentFrameTime = SDL_GetTicks();
   d->state->ticksAdvanced = d->state->currentFrameTime - d->state->prevFrameTime;
 
   std::stringstream sstream;
+
+//  sstream << "Frame start " << d->state->ticksAdvanced << '\n';
   for (auto iter = d->managers.begin();
   iter != d->managers.end();
     iter++)
   {
     Uint32 ticks = SDL_GetTicks();
     (*iter)->advance(d->state);
-    sstream << (*iter)->getName() << " ticks: " << SDL_GetTicks() - ticks << std::endl;
+//	sstream << (*iter)->getName() << " ticks: " << SDL_GetTicks() - ticks << '\n';
   }
-  std::cout << "Ticks Advanced " << d->state->ticksAdvanced << std::endl;
-  std::cout << sstream.str();
+//  std::cout << sstream.str() << '\n';
   
   return true;
 }

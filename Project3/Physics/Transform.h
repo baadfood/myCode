@@ -65,8 +65,8 @@ struct Transform2d
   {
     glm::i64vec2 temp;
     
-    temp.x = (p_rhs.rot.x * pos.x - p_rhs.rot.y * pos.y) + p_rhs.pos.x;
-    temp.y = (p_rhs.rot.y * pos.x + p_rhs.rot.x * pos.y) + p_rhs.pos.y;
+    temp.x = static_cast<int64_t>((p_rhs.rot.x * pos.x - p_rhs.rot.y * pos.y) + p_rhs.pos.x);
+    temp.y = static_cast<int64_t>((p_rhs.rot.y * pos.x + p_rhs.rot.x * pos.y) + p_rhs.pos.y);
     
     pos = temp;
     

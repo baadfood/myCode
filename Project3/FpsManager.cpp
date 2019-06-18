@@ -4,6 +4,8 @@
 
 #include <SDL.h>
 
+#include "DebugPrint.h"
+
 struct FpsManager::Private
 {
   Uint32 lastTicks;
@@ -28,9 +30,10 @@ FpsManager::~FpsManager()
 
 void FpsManager::advance(GameState * p_state)
 {
-  if (d->frameDelay >= p_state->ticksAdvanced)
+  uint32_t timeLeft = SDL_GetTicks() - p_state->currentFrameTime;
+  if (timeLeft < d->frameDelay)
   {
-    SDL_Delay(d->frameDelay - p_state->ticksAdvanced);
+    SDL_Delay(d->frameDelay - timeLeft);
   }
   else
   {

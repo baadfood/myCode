@@ -6,6 +6,7 @@
 #include "Directions.h"
 #include <cassert>
 #include <sstream>
+#include <algorithm>
 
 struct AABB
 {

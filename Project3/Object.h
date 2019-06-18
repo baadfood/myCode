@@ -114,6 +114,7 @@ public:
   virtual void storeImpulse(glm::f64vec2 p_impulse, glm::f64vec2 p_contactVector);
   virtual void applyStoredImpulses();
 
+  void setMassDirty();
   virtual bool isInCorrectQuadtreeNode() const;
 
   virtual void updateLogic(glm::u64 p_nanos);
@@ -135,6 +136,7 @@ private:
   std::vector<Component*> m_components;
   std::vector<Contact*> m_contacts;
 
+  bool m_massDirty = true;
   Ai * m_ai;
   Spinlock m_lock;
   SpatialTree * m_treeNode;
