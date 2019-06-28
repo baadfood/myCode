@@ -5,6 +5,9 @@
 #include <SDL.h>
 #include <utility>
 #include <set>
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <array>
 
 template< typename T>
 inline bool multiplication_is_safe(T a, T b)
@@ -19,16 +22,9 @@ SpinlockThreadpool & getThreadPool();
 
 namespace mika
 {
-  /*
-  class IFunction
-  {
-    double getValue(double p_value) const = 0;
-    double getDValue(double p_value) const = 0;
-  };
-  */
-  const double pi = std::acos(-1);
-  
-  void inline fixAngle(float & p_angle)
+   constexpr double pi = M_PI;
+
+   void inline fixAngle(float & p_angle)
   {
     if(p_angle > mika::pi)
     {

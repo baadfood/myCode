@@ -61,7 +61,7 @@ Asset * getBoxAsset()
   }
   
   Asset * fighterAsset(new Asset());
-  fighterAsset->setTexture(new Texture("./res/fighter.png"));
+  fighterAsset->setTexture(new Texture("./res/texture.jpg"));
   fighterAsset->setMesh(new Mesh(vertices, indices));
   return fighterAsset;
 }
@@ -154,14 +154,12 @@ void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * 
   object->addComponent(objectComponent1);
 //   object->addComponent(objectSensor);
   object->setRot(0);
-//   object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() * 4 + OBJTOWORLD * 30);
-//   object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() * 4 + OBJTOWORLD * 30);
-  object->setXPos(0);
-  object->setYPos(-OBJTOWORLD*6);
+  object->setXPos(cosCounter * OBJTOWORLD * p_objects.size() * 4 + OBJTOWORLD * 30);
+  object->setYPos(sinCounter * OBJTOWORLD * p_objects.size() * 4 + OBJTOWORLD * 30);
   object->updateTransform();
   object->setHalfSize(glm::u64vec2(OBJTOWORLD, OBJTOWORLD));
   object->setRotSpeed(0);
-  object->setSpeed(glm::i64vec2(0, OBJTOWORLD*1));
+  object->setSpeed(glm::i64vec2(-cosCounter * OBJTOWORLD * std::sqrt(p_objects.size()), -sinCounter *OBJTOWORLD * std::sqrt(p_objects.size())));
   std::vector<glm::f64vec2> vertices;
   
 //   ai->addSensor(objectSensor);
@@ -200,8 +198,8 @@ void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * 
   shape1->setVertices(vertices);
   //*/
   Fixture * fixture(new Fixture);
-  fixture->density = 0.0000000000000000000001;
-  fixture->friction = 0.2;
+  fixture->density = 0.1;
+  fixture->friction = 1;
   fixture->restitution = 1;
   fixture->object = object;
   fixture->shape = shape1;
@@ -267,7 +265,7 @@ void addMissile(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree *
   
   ai->addSensor(objectSensor);
   
-  Engine * forwardEngine = new Engine(OBJTOWORLD/10000);
+  Engine * forwardEngine = new Engine(OBJTOWORLD/1000);
   forwardEngine->setAngle(0);
   forwardEngine->setPosition(glm::i64vec2(0, -OBJTOWORLD));
 //  forwardEngine->addAsset(getEngineAsset());
@@ -397,11 +395,11 @@ void generateTestObjects(GameState & p_state)
 {
   Asset * asset(getBoxAsset());
   for(int index = 0;
-  index < 1000;
+  index < 50000;
     index++)
   {
-//    addObject(p_state.objects, asset, p_state.spatialTree);
-    addMissile(p_state.objects, asset, p_state.spatialTree);
+    addObject(p_state.objects, asset, p_state.spatialTree);
+//    addMissile(p_state.objects, asset, p_state.spatialTree);
     p_state.spatialTree = p_state.spatialTree->top();
   }
 }
@@ -410,7 +408,7 @@ int main(int argc, char ** argv)
 {
   SDL_Init(SDL_INIT_EVERYTHING);
 
-  Display display(1600, 800, "Screen 1");
+  Display display(1920, 1024, "Screen 1");
   CameraWorldBased camera(glm::i64vec2(0, 0), glm::i32vec2(1600, 800), OBJTOWORLD / 16, 1);
   camera.updateTransform();
   display.setCamera(&camera);
@@ -433,14 +431,20 @@ int main(int argc, char ** argv)
   manager.setGameState(&state);
 
   unsigned int tickStart = SDL_GetTicks();
-  
   unsigned int frames = 0;
-  unsigned int lastTicks = SDL_GetTicks();
 
   while(display.isClosed() == false)
   {
+    if (frames++ == 1000)
+    {
+      break;
+    }
     manager.progressFrame();
   }
+
+  unsigned int lastTicks = SDL_GetTicks();
+
+  std::cout << lastTicks - tickStart << '\n';
 
   SDL_Quit();
 

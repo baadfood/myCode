@@ -51,6 +51,7 @@ struct AABB
     m_halfSize = high - low;
     m_halfSize /= 2;
     m_pos = static_cast<glm::i64vec2>(m_halfSize) + low;
+    return *this;
   }
 
   inline void setCenter(glm::i64vec2 p_pos)

@@ -335,17 +335,14 @@ glm::mat4 const & Object::getTransform() const
 
 void Object::updateAabb()
 {
+  m_aabb.reset();
   if (m_components.empty() == false)
   {
-    m_aabb.reset();
-    if (m_components.empty() == false)
+    for(Component * component : m_components)
     {
-      m_aabb.reset();
-      for(Component * component : m_components)
-      {
-        component->computeAabb();
-        m_aabb += component->getAabb();
-      }
+      component->updatePosition(this);
+      component->computeAabb();
+      m_aabb += component->getAabb();
     }
   }
   else
@@ -425,16 +422,7 @@ void Object::advance(glm::u64 p_nanos)
   m_physicsTransform.pos = m_pos;
   m_physicsTransform.rot = glm::fvec2(cos(m_rot), sin(m_rot));
 
-  if (m_components.empty() == false)
-  {
-    m_aabb.reset();
-    for(Component * component : m_components)
-    {
-      component->updatePosition(this);
-      component->computeAabb();
-      m_aabb += component->getAabb();
-    }
-  }
+  updateAabb();
 }
 
 std::vector<Component*> const & Object::getComponents() const
@@ -541,6 +529,7 @@ void Object::updateMass()
 	{
 		return;
 	}
+  m_massDirty = false;
   m_mass = 0.0f;
   m_invMass = 0.0f;
   m_inertia = 0.0f;

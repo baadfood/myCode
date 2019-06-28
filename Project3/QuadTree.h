@@ -47,7 +47,7 @@ protected:
   bool nodeHasObject(Object * p_object);
   virtual bool addObject_Internal(Object * p_object);
   virtual void getObjectsIn_Internal(AABB const & p_aabb, std::vector<Object*> & p_objects);
-  virtual void getObjectsIntersected_Internal(AABB const & p_aabb, std::vector<Object*> & p_objects, int & p_test, int & p_nodesChecked);
+  virtual void getObjectsIntersected_Internal(AABB const & p_aabb, std::vector<Object*> & p_objects);
   virtual void getObjectsHit_Internal(glm::i64vec2 const & p_worldPos, std::vector<Object*> & p_objects);
 
 

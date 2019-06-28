@@ -9,7 +9,7 @@
 class SpinlockThreadpool
 {
 public:
-  SpinlockThreadpool(int p_threadCount = 16, int p_taskQueueSize = 200):
+  SpinlockThreadpool(int p_threadCount = 8, int p_taskQueueSize = 200):
   m_taskQueue(p_taskQueueSize)
   {
     setThreadCount(p_threadCount);
@@ -44,13 +44,6 @@ public:
       {
         (*m_stopFlags[index]) = true;
         m_threads[index]->detach();
-      }
-
-      for(auto iter = m_threads.begin();
-      iter != m_threads.end();
-        iter++)
-      {
-        (*iter)->join();
       }
       
       m_mutex.lock();
@@ -101,8 +94,8 @@ public:
   {
     m_unfinishedTasks.fetch_add(1);
     m_taskQueue.push(p_task);
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_conditionVar.notify_one();
+//    std::unique_lock<std::mutex> lock(m_mutex);
+//    m_conditionVar.notify_one();
   }
 
   template<typename F, typename... Rest>

@@ -39,16 +39,6 @@ void Component::setWorldPos(glm::i64vec2 p_pos)
   d->transform.pos = p_pos;
 }
 
-void Component::setHalfSize(glm::u64vec2 p_size)
-{
-  d->halfSize = p_size;
-}
-
-glm::u64vec2 const& Component::getHalfSize() const
-{
-  return d->halfSize;
-}
-
 Object* Component::getObject()
 {
   return d->object;

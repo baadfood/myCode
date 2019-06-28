@@ -62,7 +62,7 @@ std::string const & PhysicsManager::getName() const
 void PhysicsManager::moveObjects()
 {
   int size = d->objectsToUpdate->size();
-  int blocksize = size / 800;
+  int blocksize = size / 80;
   if(blocksize == 0)
   {
     blocksize = size;
@@ -79,7 +79,6 @@ void PhysicsManager::moveObjects()
       currentIndex++)
     {
       d->objectsToUpdate->at(currentIndex)->advance(d->nanosToAdvance);
-      d->objectsToUpdate->at(currentIndex)->updateAabb();
       d->objectsToUpdate->at(currentIndex)->clearContacts();
     }
   }
@@ -93,7 +92,7 @@ bool PhysicsManager::checkCollision(Object * p_object1, Object * p_object2, std:
 PhysicsManager::ContactsData * PhysicsManager::getContacts()
 {
   int size = d->objectsToUpdate->size();
-  int blocksize = size / 800;
+  int blocksize = size / 80;
   if(blocksize == 0)
   {
     blocksize = size;

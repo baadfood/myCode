@@ -550,56 +550,48 @@ void QuadTree::getObjectsIntersected(AABB const & p_aabb, std::vector<Object*> &
     node = node->m_parent;
   }
   
-  int objectsChecked = 0;
-  int nodesChecked = 0;
-
-  node->getObjectsIntersected_Internal(p_aabb, p_objects, objectsChecked, nodesChecked);
+  node->getObjectsIntersected_Internal(p_aabb, p_objects);
 
   while(node->m_parent)
   {
-    nodesChecked++;
     node = node->m_parent;
     for (auto iter = node->m_objects.begin();
     iter != node->m_objects.end();
       iter++)
     {
-      objectsChecked++;
       if (p_aabb.intersects((*iter)->getAABB()))
       {
         p_objects.push_back(*iter);
       }
     }
   }
-//  std::cout << "Nodes checked: " << nodesChecked << " Objects checked " << objectsChecked << std::endl;
 }
 
-void QuadTree::getObjectsIntersected_Internal(const AABB& p_aabb, std::vector< Object* >& p_objects, int& p_test, int& p_nodesChecked)
+void QuadTree::getObjectsIntersected_Internal(const AABB& p_aabb, std::vector< Object* >& p_objects)
 {
-  p_nodesChecked++;
   if(m_divided)
   {
     if(m_ne->m_boundary.intersects(p_aabb))
     {
-      m_ne->getObjectsIntersected_Internal(p_aabb, p_objects, p_test, p_nodesChecked);
+      m_ne->getObjectsIntersected_Internal(p_aabb, p_objects);
     }
     if(m_se->m_boundary.intersects(p_aabb))
     {
-      m_se->getObjectsIntersected_Internal(p_aabb, p_objects, p_test, p_nodesChecked);
+      m_se->getObjectsIntersected_Internal(p_aabb, p_objects);
     }
     if(m_sw->m_boundary.intersects(p_aabb))
     {
-      m_sw->getObjectsIntersected_Internal(p_aabb, p_objects, p_test, p_nodesChecked);
+      m_sw->getObjectsIntersected_Internal(p_aabb, p_objects);
     }
     if(m_nw->m_boundary.intersects(p_aabb))
     {
-      m_nw->getObjectsIntersected_Internal(p_aabb, p_objects, p_test, p_nodesChecked);
+      m_nw->getObjectsIntersected_Internal(p_aabb, p_objects);
     }
   }
   for(auto iter = m_objects.begin();
   iter != m_objects.end();
     iter++)
   {
-    p_test++;
     if(p_aabb.intersects((*iter)->getAABB()))
     {
       p_objects.push_back(*iter);

@@ -29,8 +29,8 @@ d(new Private())
   d->managers.emplace_back(new PhysicsManager());
   d->managers.emplace_back(new InputManager());
   d->managers.emplace_back(new LogicManager());
-  d->managers.emplace_back(new FpsManager());
   d->managers.emplace_back(new RenderManager());
+  d->managers.emplace_back(new FpsManager());
 }
 
 GameManager::~GameManager()
@@ -50,7 +50,7 @@ GameState * GameManager::getGameState()
 bool GameManager::progressFrame()
 {
   d->state->prevFrameTime = d->state->currentFrameTime;
-//  d->state->currentFrameTime += 30;
+//  d->state->currentFrameTime += 16;
   d->state->currentFrameTime = SDL_GetTicks();
   d->state->ticksAdvanced = d->state->currentFrameTime - d->state->prevFrameTime;
 
