@@ -16,28 +16,24 @@ public:
   ~CameraRightClickMoveHandler()
   {
   }
-  virtual bool handleInput(SDL_Event const * sdlEvent)
+  virtual bool handleInput(Event const & p_event)
   {
-    if (sdlEvent->type == SDL_MOUSEBUTTONDOWN
-        && sdlEvent->button.button == 3)
+    if (p_event.sdlEvent.type == SDL_MOUSEBUTTONDOWN
+        && p_event.sdlEvent.button.button == 3)
     {
       m_startCameraPos = m_camera->getPos();
-      m_startPos = m_camera->screenToWorld(glm::i32vec2(sdlEvent->motion.x, sdlEvent->motion.y));
+      m_startPos = m_camera->screenToWorld(glm::i32vec2(p_event.sdlEvent.motion.x, p_event.sdlEvent.motion.y));
       return true;
     }
-    else if (sdlEvent->type == SDL_MOUSEMOTION
-             && sdlEvent->motion.state == 4)
+    else if (p_event.sdlEvent.type == SDL_MOUSEMOTION
+             && p_event.sdlEvent.motion.state == 4)
     {
-      glm::i64vec2 currentPos = m_camera->screenToWorld(glm::i32vec2(sdlEvent->motion.x, sdlEvent->motion.y));
+      glm::i64vec2 currentPos = m_camera->screenToWorld(glm::i32vec2(p_event.sdlEvent.motion.x, p_event.sdlEvent.motion.y));
       m_camera->moveTo((m_startCameraPos - currentPos) + m_startPos);
       m_startCameraPos = m_camera->getPos();
       return true;
     }
     return false;
-  }
-  virtual void bindObject(Object * p_object)
-  {
-    m_camera = dynamic_cast<CameraBase*>(p_object);
   }
 
 private:

@@ -164,9 +164,9 @@ void BasicAi::updateLogic(glm::i64 p_nanos)
 	mika::fixAngle(angleDiff);
 	
 	for(Sensor * sensor : d->sensors)
-    {
-      sensor->setAngle(angleDiff);
-    }
+  {
+    sensor->setAngle(angleDiff);
+  }
     
     
     // TODO This logic might be bad, I have no idea.

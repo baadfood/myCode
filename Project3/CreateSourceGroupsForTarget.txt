@@ -1,0 +1,24 @@
+function(create_source_groups_for_target target)
+
+get_target_property(source_files ${target} SOURCES)
+get_target_property(source_dir ${target} SOURCE_DIR)
+
+foreach(source_file ${source_files})
+
+	if(NOT IS_ABSOLUTE ${source_file})
+	  set(abs_path "${source_dir}/${source_file}")
+	elseif()
+	  set(abs_path ${source_file})
+	endif()
+
+	file(RELATIVE_PATH relative_path ${CMAKE_SOURCE_DIR} ${abs_path})
+	get_filename_component (relative_path ${relative_path} DIRECTORY)
+
+
+	string(REPLACE "/" "\\\\" source_group ${relative_path}) 
+
+	message("${source_file} -> ${source_group}")
+	source_group(${source_group} FILES "${source_file}")
+endforeach()
+
+endfunction()

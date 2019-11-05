@@ -65,6 +65,7 @@ set(Project3_SRCS
 ./Components/Engine.cpp
 ./AI/BasicAi.cpp
 ./AI/Ai.cpp
+./AI/FlyByWireAi.cpp
 ./Physics/Collision/CollisionHandler.cpp
 )
 
@@ -135,17 +136,22 @@ set(Project3_HDRS
 ./Components/Engine.h
 ./AI/BasicAi.h
 ./AI/Ai.h
+./AI/FlyByWireAi.h
 )
 
-set(Project3_INLS./InputHandlers/MoveOnKeyDownHandler.inl
+set(Project3_INLS
+./InputHandlers/MoveOnKeyDownHandler.inl
 ./InputHandlers/CameraRightClickMoveHandler.inl
 ./InputHandlers/CameraMouseZoomHandler.inl
 ./InputHandlers/RightClickMoveHandler.inl
+./InputHandlers/FlyByWireAiController.inl
 )
 
 foreach(RES_FILE ${Project3_RES})
 
 set(Project3_RESC ${Project3_RESC} "${CMAKE_CURRENT_BINARY_DIR}/${RES_FILE}")
+
+include(CreateSourceGroupsForTarget.txt)
 
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${RES_FILE}
@@ -160,8 +166,11 @@ add_custom_command(
     
 endforeach()
 
-
 add_executable(Project3 ${Project3_SRCS} ${Project3_HDRS} ${Project3_INLS} ${Project3_RESC})
+
+create_source_groups_for_target(Project3)
+
+
 
 if(NOT GLM_INCLUDE_DIRS)
   find_path(GLM_INCLUDE_DIRS NAMES glm/glm.hpp HINTS "${CMAKE_SOURCE_DIR}/glm")

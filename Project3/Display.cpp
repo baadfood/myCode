@@ -100,17 +100,52 @@ bool Display::isClosed()
 
 bool Display::handleEvent(SDL_Event * p_event, GameState * p_state)
 {
+  bool gotPos = true;
+  glm::i64vec2 worldPos;
+  int screenX;
+  int screenY;
+  switch (p_event->type)
+  {
+  case SDL_MOUSEBUTTONDOWN:
+    screenX = p_event->button.x;
+    screenY = p_event->button.y;
+    break;
+  case SDL_MOUSEMOTION:
+    screenX = p_event->button.x;
+    screenY = p_event->button.y;
+    break;
+  case SDL_MOUSEBUTTONUP:
+    screenX = p_event->button.x;
+    screenY = p_event->button.y;
+    break;
+  case SDL_MOUSEWHEEL:
+    screenX = p_event->button.x;
+    screenY = p_event->button.y;
+    break;
+  default:
+    gotPos = false;
+    break;
+  }
+  if (gotPos)
+  {
+    worldPos = d->camera->screenToWorld(glm::i32vec2(screenX, screenY));
+  }
+  else
+  {
+    worldPos = glm::i64vec2(0, 0);
+  }
+  Event event(*p_event, worldPos);
+
   // Handle focus changing events.
   if(p_event->type == SDL_MOUSEBUTTONDOWN
      &&  p_event->button.button == 1)
   {
-    glm::i64vec2 worldPos = d->camera->screenToWorld(glm::i32vec2(p_event->motion.x, p_event->motion.y));
     std::cout << "clicked at X:" << worldPos.x << " Y:" << worldPos.y << std::endl;
     std::vector<Object *> objects;
     p_state->spatialTree->getObjectsAt(worldPos, objects);
     if(d->inputFocus)
     {
-      d->inputFocus->handleLostFocus(p_event);
+      d->inputFocus->handleLostFocus(event);
     }
     d->inputFocus = nullptr;
 
@@ -122,7 +157,7 @@ bool Display::handleEvent(SDL_Event * p_event, GameState * p_state)
     iter != objects.end();
       iter++)
     {
-      if((*iter)->handleGotFocus(p_event))
+      if((*iter)->handleGotFocus(event))
       {
         d->inputFocus = (*iter);
         break;
@@ -131,49 +166,24 @@ bool Display::handleEvent(SDL_Event * p_event, GameState * p_state)
   }
 
   if(d->inputFocus != nullptr
-  && d->inputFocus->handleInput(p_event))
+  && d->inputFocus->handleInput(event))
   {
     // Yey, object handled and consumed event, nothing to do here but skip rest of the handlers.
     return true;
   }
 
-  bool gotPos = true;
-  int screenX;
-  int screenY;
-  switch(p_event->type)
-  {
-    case SDL_MOUSEBUTTONDOWN:
-    screenX = p_event->button.x;
-    screenY = p_event->button.y;
-    break;
-    case SDL_MOUSEMOTION:
-    screenX = p_event->button.x;
-    screenY = p_event->button.y;
-    break;
-    case SDL_MOUSEBUTTONUP:
-    screenX = p_event->button.x;
-    screenY = p_event->button.y;
-    break;
-    case SDL_MOUSEWHEEL:
-    screenX = p_event->button.x;
-    screenY = p_event->button.y;
-    break;
-    default:
-    gotPos = false;
-    break;
-  }
+
   if(gotPos)
   {
-    glm::i64vec2 worldPos = d->camera->screenToWorld(glm::i32vec2(screenX, screenY));
     std::vector<Object *> objects;
     p_state->spatialTree->getObjectsAt(worldPos, objects);
     auto sortFunc = std::bind(objectPriority, worldPos, std::placeholders::_1, std::placeholders::_2);
 
+    Event event(*p_event, worldPos);
     static size_t nobjects = 0;
     
     if(objects.size() != nobjects)
     {
-      std::cout << "Objects under cursor: " << objects.size() << std::endl;
       nobjects = objects.size();
     }
 
@@ -183,9 +193,21 @@ bool Display::handleEvent(SDL_Event * p_event, GameState * p_state)
     iter != objects.end();
       iter++)
     {
-      if((*iter)->handleInput(p_event))
+      if((*iter)->handleInput(event))
       {
         return true;
+      }
+    }
+
+    if (p_event->type == SDL_MOUSEBUTTONDOWN)
+    {
+      if (objects.size() == 1)
+      {
+        d->camera->lookAt(objects[0]);
+      }
+      else if (objects.size() == 0)
+      {
+        d->camera->lookAt(nullptr);
       }
     }
   }
@@ -194,14 +216,14 @@ bool Display::handleEvent(SDL_Event * p_event, GameState * p_state)
   iter != d->screenInputHandlers.end();
     iter++)
   {
-    if((*iter)->handleInput(p_event))
+    if((*iter)->handleInput(event))
     {
       // Input was consumed.
       return true;
     }
   }
 
-  if(d->camera->handleInput(p_event))
+  if(d->camera->handleInput(event))
   {
     return true;
   }

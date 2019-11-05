@@ -14,18 +14,14 @@ public:
   {}
   ~CameraMouseZoomHandler()
   {}
-  virtual bool handleInput(SDL_Event const * sdlEvent)
+  virtual bool handleInput(Event const & p_event)
   {
-    if(sdlEvent->type == SDL_MOUSEWHEEL)
+    if(p_event.sdlEvent.type == SDL_MOUSEWHEEL)
     {
-      m_camera->setWorldPerPixel(m_camera->getWorldPerPixel() + (m_camera->getWorldPerPixel() * sdlEvent->wheel.y) / 5);
+      m_camera->setWorldPerPixel(m_camera->getWorldPerPixel() + (m_camera->getWorldPerPixel() * p_event.sdlEvent.wheel.y) / 5);
       return true;
     }
     return false;
-  }
-  virtual void bindObject(Object * p_object)
-  {
-    m_camera = dynamic_cast<CameraWorldBased*>(p_object);
   }
 
 private:

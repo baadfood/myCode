@@ -25,6 +25,7 @@
 #include "SharedPtr.h"
 #include "Components/Component.h"
 #include "AI/BasicAi.h"
+#include "InputHandlers/FlyByWireAiController.inl"
 
 #include "Components/Sensor.h"
 #include "Components/Engine.h"
@@ -33,6 +34,7 @@
 #include <SDL.h>
 
 #include <fstream>
+#include <AI\FlyByWireAi.h>
 
 double fRand(double fMin, double fMax)
 {
@@ -92,7 +94,6 @@ Asset* getEngineAsset()
 	return fighterAsset;
 }
 
-
 Asset * getSensorAsset()
 {
   static Asset * s_asset = nullptr;
@@ -123,6 +124,108 @@ Asset * getSensorAsset()
   fighterAsset->setMesh(new Mesh(vertices, indices));
   s_asset = fighterAsset;
   return fighterAsset;
+}
+
+void addFlyByWireObject(std::vector<Object*>& p_objects, Asset* p_asset, SpatialTree* tree)
+{
+  Object* object = new Object(std::to_string(p_objects.size() + 1));
+  FlyByWireAi * ai = new FlyByWireAi();
+  auto controller = std::make_shared<FlyByWireAiController>(ai);
+  ai->setObject(object);
+  object->setAi(ai);
+  object->addInputHandler(controller);
+
+  Component* objectComponent1 = new Component();
+
+  objectComponent1->setAngle(0);
+  objectComponent1->setPosition(glm::i64vec2(0, 0));
+  objectComponent1->addAsset(p_asset);
+
+  object->addComponent(objectComponent1);
+  object->setRot(0);
+  object->setXPos(0);
+  object->setYPos(0);
+
+  object->updateTransform();
+  object->setHalfSize(glm::u64vec2(OBJTOWORLD / 4, OBJTOWORLD / 4));
+  object->setSpeed(glm::i64vec2(0, 0));
+
+  Engine* forwardEngine = new Engine(OBJTOWORLD / 1000);
+  forwardEngine->setAngle(0);
+  forwardEngine->setPosition(glm::i64vec2(0, -OBJTOWORLD));
+  //  forwardEngine->addAsset(getEngineAsset());
+
+  Engine * clockwiseEngine1 = new Engine(OBJTOWORLD / 10000);
+  clockwiseEngine1->setAngle(3.1415912/2);
+  clockwiseEngine1->setPosition(glm::i64vec2(0, -OBJTOWORLD));
+
+  Engine* clockwiseEngine2 = new Engine(OBJTOWORLD / 10000);
+  clockwiseEngine2->setAngle(-3.1415912 / 2);
+  clockwiseEngine2->setPosition(glm::i64vec2(0, OBJTOWORLD));
+  //  clockwiseEngine2->addAsset(getEngineAsset());
+
+  Engine * cClockwiseEngine1 = new Engine(OBJTOWORLD / 10000);
+  cClockwiseEngine1->setAngle(-3.1415912/2);
+  cClockwiseEngine1->setPosition(glm::i64vec2(0, -OBJTOWORLD));
+
+  Engine* cClockwiseEngine2 = new Engine(OBJTOWORLD / 10000);
+  cClockwiseEngine2->setAngle(3.1415912 / 2);
+  cClockwiseEngine2->setPosition(glm::i64vec2(0, OBJTOWORLD));
+  //  cClockwiseEngine2->addAsset(getEngineAsset());
+
+
+  object->addComponent(forwardEngine);
+  object->addComponent(clockwiseEngine1);
+  object->addComponent(cClockwiseEngine1);
+  object->addComponent(clockwiseEngine2);
+  object->addComponent(cClockwiseEngine2);
+  ai->addEngine(forwardEngine, FlyByWireAi::eForward);
+  ai->addEngine(clockwiseEngine1, FlyByWireAi::eClockwiseTurn);
+  ai->addEngine(cClockwiseEngine1, FlyByWireAi::eCounterCTurn);
+  ai->addEngine(clockwiseEngine2, FlyByWireAi::eClockwiseTurn);
+  ai->addEngine(cClockwiseEngine2, FlyByWireAi::eCounterCTurn);
+
+  std::vector<glm::f64vec2> vertices;
+
+  PolygonShape* shape1 = new PolygonShape;
+  vertices.resize(4);
+  vertices[0] = glm::f64vec2(OBJTOWORLD / 4, OBJTOWORLD / 4);
+  vertices[1] = glm::f64vec2(OBJTOWORLD / 4, -OBJTOWORLD / 4);
+  vertices[2] = glm::f64vec2(-OBJTOWORLD / 4, -OBJTOWORLD / 4);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD / 4, OBJTOWORLD / 4);
+  shape1->setVertices(vertices);
+  //*/
+  Fixture* fixture(new Fixture);
+  fixture->density = 0.0000000000000000000001;
+  fixture->friction = 0.2;
+  fixture->restitution = 1;
+  fixture->object = object;
+  fixture->shape = shape1;
+  fixture->type = Fixture::eNormal;
+
+  objectComponent1->addFixture(fixture);
+
+  PolygonShape* engine1Shape = new PolygonShape;
+  vertices.resize(4);
+  vertices[0] = glm::f64vec2(OBJTOWORLD / 16, OBJTOWORLD / 8);
+  vertices[1] = glm::f64vec2(OBJTOWORLD / 8, -OBJTOWORLD / 8);
+  vertices[2] = glm::f64vec2(-OBJTOWORLD / 8, -OBJTOWORLD / 8);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD / 16, OBJTOWORLD / 8);
+  engine1Shape->setVertices(vertices);
+
+  Fixture* engine1Fix(new Fixture);
+  engine1Fix->density = 0;
+  engine1Fix->friction = 0;
+  engine1Fix->restitution = 0;
+  engine1Fix->object = object;
+  engine1Fix->shape = engine1Shape;
+  engine1Fix->type = Fixture::eSensor;
+  forwardEngine->addFixture(engine1Fix);
+
+  object->updateMass();
+
+  tree->addObject(object);
+  p_objects.push_back(object);
 }
 
 void addObject(std::vector<Object*> & p_objects, Asset * p_asset, SpatialTree * tree)
@@ -395,13 +498,14 @@ void generateTestObjects(GameState & p_state)
 {
   Asset * asset(getBoxAsset());
   for(int index = 0;
-  index < 50000;
+  index < 1;
     index++)
   {
     addObject(p_state.objects, asset, p_state.spatialTree);
-//    addMissile(p_state.objects, asset, p_state.spatialTree);
+    addMissile(p_state.objects, asset, p_state.spatialTree);
     p_state.spatialTree = p_state.spatialTree->top();
   }
+  addFlyByWireObject(p_state.objects, asset, p_state.spatialTree);
 }
 
 int main(int argc, char ** argv)
@@ -409,13 +513,13 @@ int main(int argc, char ** argv)
   SDL_Init(SDL_INIT_EVERYTHING);
 
   Display display(1920, 1024, "Screen 1");
-  CameraWorldBased camera(glm::i64vec2(0, 0), glm::i32vec2(1600, 800), OBJTOWORLD / 16, 1);
+  CameraWorldBased camera(glm::i64vec2(0, 0), glm::i32vec2(1920, 1024), OBJTOWORLD / 16, 1);
   camera.updateTransform();
   display.setCamera(&camera);
 
   AABB aabb;
   aabb.setCenter(glm::i64vec2(0, 0));
-  aabb.setSize(glm::u64vec2(std::numeric_limits<glm::u64>::max() / 16, std::numeric_limits<glm::u64>::max() / 16));
+  aabb.setSize(glm::u64vec2(std::numeric_limits<glm::u64>::max() / 2, std::numeric_limits<glm::u64>::max() / 2));
 
   GameState state;
   state.focusedObject = nullptr;
@@ -430,21 +534,10 @@ int main(int argc, char ** argv)
   GameManager manager;
   manager.setGameState(&state);
 
-  unsigned int tickStart = SDL_GetTicks();
-  unsigned int frames = 0;
-
   while(display.isClosed() == false)
   {
-    if (frames++ == 1000)
-    {
-      break;
-    }
     manager.progressFrame();
   }
-
-  unsigned int lastTicks = SDL_GetTicks();
-
-  std::cout << lastTicks - tickStart << '\n';
 
   SDL_Quit();
 

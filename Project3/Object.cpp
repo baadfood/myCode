@@ -357,10 +357,10 @@ AABB const & Object::getAABB() const
   return m_aabb;
 }
 
-bool Object::handleGotFocus(SDL_Event const * p_event)
+bool Object::handleGotFocus(Event const & p_event)
 {
   // By default, try to handle incoming event to see if we want focus.
-  return handleInput(p_event);
+  return true;
 }
 
 void Object::updateLogic(glm::u64 p_nanos)
@@ -381,7 +381,7 @@ glm::f64 & Object::positionCorrectionPressure()
 }
 
 
-void Object::handleLostFocus(SDL_Event const * p_event)
+void Object::handleLostFocus(Event const & p_event)
 {
 
 }
@@ -449,13 +449,12 @@ glm::u32 Object::getTypeId() const
   return m_typeId;
 }
 
-bool Object::handleInput(SDL_Event const * p_event)
+bool Object::handleInput(Event const & p_event)
 {
   for (auto iter = m_inputHandlers.begin();
   iter != m_inputHandlers.end();
     iter++)
   {
-    (*iter)->bindObject(this);
     if ((*iter)->handleInput(p_event))
     {
       return true;

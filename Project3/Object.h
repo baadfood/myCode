@@ -93,10 +93,10 @@ public:
   virtual glm::i64vec2 getOffset(glm::i64vec2 const & p_origin) const;
   virtual glm::mat4 const & getTransform() const;
 
-  virtual bool handleGotFocus(SDL_Event const * p_event);
-  virtual void handleLostFocus(SDL_Event const * p_event);
+  virtual bool handleGotFocus(Event const & p_event);
+  virtual void handleLostFocus(Event const & p_event);
 
-  virtual bool handleInput(SDL_Event const * p_event);
+  virtual bool handleInput(Event const & p_event);
   virtual void bindObject(Object * p_object);
 
   virtual void addInputHandler(std::shared_ptr<UserInputHandler> p_handler);
