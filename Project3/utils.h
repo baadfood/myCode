@@ -24,7 +24,8 @@ namespace mika
 {
    constexpr double pi = M_PI;
 
-   void inline fixAngle(float & p_angle)
+   template <typename T>
+   void inline fixAngle(T & p_angle)
   {
     if(p_angle > mika::pi)
     {

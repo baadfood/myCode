@@ -30,6 +30,7 @@ public:
     float angleToAimAt = atan2(-(p_event.worldPos.x - pos.x), p_event.worldPos.y - pos.y);
 
     m_ai->setDesiredDirection(angleToAimAt);
+    m_ai->setDesiredLocation(p_event.worldPos);
 
     return true;
 

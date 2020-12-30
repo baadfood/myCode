@@ -19,6 +19,7 @@ struct Component::Private
   glm::mat4 model;
   glm::u64vec2 halfSize;
   Object * object;
+  glm::f32vec3 selfIlluminationColor = glm::f32vec3(0.0,0.0,0.0);
   bool posIsWorldPos = false;
 
   MassData massData;
@@ -49,6 +50,15 @@ void Component::setObject(Object* p_object)
   d->object = p_object;
 }
 
+void Component::setSelfIllumination(glm::f32vec3 p_color)
+{
+  d->selfIlluminationColor = p_color;
+}
+
+glm::f32vec3 Component::getSelfIllumination() const
+{
+  return d->selfIlluminationColor;
+}
 
 void Component::addContact(Contact * p_contact)
 {

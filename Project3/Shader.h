@@ -18,6 +18,7 @@ public:
     ePosition,
     eTexCoord,
     eNormal,
+    eSelfIlluminationColor,
     eModel
   };
 

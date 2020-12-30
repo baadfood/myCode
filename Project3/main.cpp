@@ -42,6 +42,12 @@ double fRand(double fMin, double fMax)
   return fMin + f * (fMax - fMin);
 }
 
+Texture* getTexture()
+{
+  static Texture text("./res/texture.jpg");
+  return &text;
+}
+
 Asset * getBoxAsset()
 {
   std::vector<Vertex> vertices;
@@ -63,7 +69,7 @@ Asset * getBoxAsset()
   }
   
   Asset * fighterAsset(new Asset());
-  fighterAsset->setTexture(new Texture("./res/texture.jpg"));
+  fighterAsset->setTexture(getTexture());
   fighterAsset->setMesh(new Mesh(vertices, indices));
   return fighterAsset;
 }
@@ -126,10 +132,20 @@ Asset * getSensorAsset()
   return fighterAsset;
 }
 
-void addFlyByWireObject(std::vector<Object*>& p_objects, Asset* p_asset, SpatialTree* tree)
+void addFlyByWireObject(std::vector<Object*>& p_objects, Asset* p_asset, SpatialTree* tree, Object* p_target, glm::i64vec2 p_offset, glm::f32 p_size = 1.0)
 {
   Object* object = new Object(std::to_string(p_objects.size() + 1));
   FlyByWireAi * ai = new FlyByWireAi();
+  if (p_target)
+  {
+    ai->setTarget(p_target);
+    ai->setPositionOffset(p_offset);
+  }
+  else
+  {
+    ai->setDesiredLocation(glm::ivec2(0, 0));
+  }
+
   auto controller = std::make_shared<FlyByWireAiController>(ai);
   ai->setObject(object);
   object->setAi(ai);
@@ -147,52 +163,83 @@ void addFlyByWireObject(std::vector<Object*>& p_objects, Asset* p_asset, Spatial
   object->setYPos(0);
 
   object->updateTransform();
-  object->setHalfSize(glm::u64vec2(OBJTOWORLD / 4, OBJTOWORLD / 4));
+  object->setHalfSize(glm::u64vec2(OBJTOWORLD / 4 * p_size, OBJTOWORLD / 4 * p_size));
   object->setSpeed(glm::i64vec2(0, 0));
 
-  Engine* forwardEngine = new Engine(OBJTOWORLD / 1000);
+  std::vector<Engine*> engines;
+
+  Engine* forwardEngine = new Engine(OBJTOWORLD / 10000);
   forwardEngine->setAngle(0);
-  forwardEngine->setPosition(glm::i64vec2(0, -OBJTOWORLD));
-  //  forwardEngine->addAsset(getEngineAsset());
+  forwardEngine->setPosition(glm::i64vec2(0, -OBJTOWORLD / 3));
+  engines.push_back(forwardEngine);
 
-  Engine * clockwiseEngine1 = new Engine(OBJTOWORLD / 10000);
+  Engine* backwardEngine = new Engine(OBJTOWORLD / 10000);
+  backwardEngine->setAngle(M_PI);
+  backwardEngine->setPosition(glm::i64vec2(0, OBJTOWORLD / 3));
+  engines.push_back(backwardEngine);
+
+  Engine* leftEngine = new Engine(OBJTOWORLD / 100000);
+  leftEngine->setAngle(M_PI/2);
+  leftEngine->setPosition(glm::i64vec2(OBJTOWORLD / 3, 0));
+  engines.push_back(leftEngine);
+
+  Engine* rightEngine = new Engine(OBJTOWORLD / 100000);
+  rightEngine->setAngle(-M_PI/2);
+  rightEngine->setPosition(glm::i64vec2(-OBJTOWORLD / 3, 0));
+  engines.push_back(rightEngine);
+
+
+  Engine * clockwiseEngine1 = new Engine(OBJTOWORLD / 100000);
   clockwiseEngine1->setAngle(3.1415912/2);
-  clockwiseEngine1->setPosition(glm::i64vec2(0, -OBJTOWORLD));
+  clockwiseEngine1->setPosition(glm::i64vec2(OBJTOWORLD / 4 * p_size, -OBJTOWORLD / 5 * p_size));
+  engines.push_back(clockwiseEngine1);
 
-  Engine* clockwiseEngine2 = new Engine(OBJTOWORLD / 10000);
-  clockwiseEngine2->setAngle(-3.1415912 / 2);
-  clockwiseEngine2->setPosition(glm::i64vec2(0, OBJTOWORLD));
-  //  clockwiseEngine2->addAsset(getEngineAsset());
-
-  Engine * cClockwiseEngine1 = new Engine(OBJTOWORLD / 10000);
+  //Engine* clockwiseEngine2 = new Engine(OBJTOWORLD / 10000000);
+  //clockwiseEngine2->setAngle(-3.1415912 / 2);
+  //clockwiseEngine2->setPosition(glm::i64vec2(-OBJTOWORLD / 4, OBJTOWORLD / 5));
+  //engines.push_back(clockwiseEngine2);
+  
+  Engine * cClockwiseEngine1 = new Engine(OBJTOWORLD / 100000);
   cClockwiseEngine1->setAngle(-3.1415912/2);
-  cClockwiseEngine1->setPosition(glm::i64vec2(0, -OBJTOWORLD));
+  cClockwiseEngine1->setPosition(glm::i64vec2(-OBJTOWORLD / 4 * p_size, -OBJTOWORLD / 5 * p_size));
+  engines.push_back(cClockwiseEngine1);
 
-  Engine* cClockwiseEngine2 = new Engine(OBJTOWORLD / 10000);
-  cClockwiseEngine2->setAngle(3.1415912 / 2);
-  cClockwiseEngine2->setPosition(glm::i64vec2(0, OBJTOWORLD));
-  //  cClockwiseEngine2->addAsset(getEngineAsset());
+  //Engine* cClockwiseEngine2 = new Engine(OBJTOWORLD / 10000000);
+  //cClockwiseEngine2->setAngle(3.1415912 / 2);
+  //cClockwiseEngine2->setPosition(glm::i64vec2(OBJTOWORLD / 4, OBJTOWORLD / 5));
+  //engines.push_back(cClockwiseEngine2);
 
+/*  for (auto engine : engines)
+  {
+    engine->addAsset(getEngineAsset());
+  }
+  */
 
   object->addComponent(forwardEngine);
+  object->addComponent(backwardEngine);
+  object->addComponent(leftEngine);
+  object->addComponent(rightEngine);
   object->addComponent(clockwiseEngine1);
   object->addComponent(cClockwiseEngine1);
-  object->addComponent(clockwiseEngine2);
-  object->addComponent(cClockwiseEngine2);
+//  object->addComponent(clockwiseEngine2);
+//  object->addComponent(cClockwiseEngine2);
   ai->addEngine(forwardEngine, FlyByWireAi::eForward);
+  ai->addEngine(backwardEngine, FlyByWireAi::eBackward);
+  ai->addEngine(leftEngine, FlyByWireAi::eLeft);
+  ai->addEngine(rightEngine, FlyByWireAi::eRight);
   ai->addEngine(clockwiseEngine1, FlyByWireAi::eClockwiseTurn);
   ai->addEngine(cClockwiseEngine1, FlyByWireAi::eCounterCTurn);
-  ai->addEngine(clockwiseEngine2, FlyByWireAi::eClockwiseTurn);
-  ai->addEngine(cClockwiseEngine2, FlyByWireAi::eCounterCTurn);
+//  ai->addEngine(clockwiseEngine2, FlyByWireAi::eClockwiseTurn);
+//  ai->addEngine(cClockwiseEngine2, FlyByWireAi::eCounterCTurn);
 
   std::vector<glm::f64vec2> vertices;
 
   PolygonShape* shape1 = new PolygonShape;
   vertices.resize(4);
-  vertices[0] = glm::f64vec2(OBJTOWORLD / 4, OBJTOWORLD / 4);
-  vertices[1] = glm::f64vec2(OBJTOWORLD / 4, -OBJTOWORLD / 4);
-  vertices[2] = glm::f64vec2(-OBJTOWORLD / 4, -OBJTOWORLD / 4);
-  vertices[3] = glm::f64vec2(-OBJTOWORLD / 4, OBJTOWORLD / 4);
+  vertices[0] = glm::f64vec2(OBJTOWORLD / 4 * p_size, OBJTOWORLD / 4 * p_size);
+  vertices[1] = glm::f64vec2(OBJTOWORLD / 4 * p_size, -OBJTOWORLD / 4 * p_size);
+  vertices[2] = glm::f64vec2(-OBJTOWORLD / 4 * p_size, -OBJTOWORLD / 4 * p_size);
+  vertices[3] = glm::f64vec2(-OBJTOWORLD / 4 * p_size, OBJTOWORLD / 4 * p_size);
   shape1->setVertices(vertices);
   //*/
   Fixture* fixture(new Fixture);
@@ -505,7 +552,16 @@ void generateTestObjects(GameState & p_state)
     addMissile(p_state.objects, asset, p_state.spatialTree);
     p_state.spatialTree = p_state.spatialTree->top();
   }
-  addFlyByWireObject(p_state.objects, asset, p_state.spatialTree);
+  addFlyByWireObject(p_state.objects, asset, p_state.spatialTree, 0, glm::i64vec2(0,0), 3.0);
+  Object* target = p_state.objects.back();
+  const int c_formationSize = 1000;
+  for (int index = -c_formationSize / 2;
+       index < (c_formationSize / 2) + 1;
+       index++)
+  {
+    if (index == 0) continue;
+    addFlyByWireObject(p_state.objects, asset, p_state.spatialTree, target, glm::i64vec2(index % 50 * OBJTOWORLD + 3* OBJTOWORLD, std::abs(index % 50 + (index / 50)*2) * OBJTOWORLD+ 3 * OBJTOWORLD));
+  }
 }
 
 int main(int argc, char ** argv)

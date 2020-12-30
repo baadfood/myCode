@@ -155,7 +155,7 @@ void BasicAi::updateLogic(glm::i64 p_nanos)
 //      d->reticule->setWorldPos(glm::i64vec2(myProjectedPos));
 //      std::cout << "Relative speed coeff " << std::min(0.99, std::abs(rotatedRelativeSpeed.y /(d->forwardAccel*2.0))) << std::endl;
 //      std::cout << "Relative y speed " << rotatedRelativeSpeed.y << std::endl;
-      aimVector = glm::normalize(unitVectorToTarget + (unitVectorRelativeSpeed * std::min(4.0, std::abs(rotatedRelativeSpeed.y / (d->forwardAccel*1.0)))));
+      aimVector = glm::normalize(unitVectorToTarget + (unitVectorRelativeSpeed * std::min(4.0, std::abs(rotatedRelativeSpeed.y / (d->forwardAccel*0.5)))));
     }
     
 	glm::float32 angleToAimAt = atan2(-aimVector.x, aimVector.y);

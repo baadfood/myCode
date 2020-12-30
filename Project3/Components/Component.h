@@ -22,7 +22,10 @@ public:
   std::vector<Contact *> & getContacts();
 
   virtual void updateLogic(glm::u64 p_nanos);
-  
+
+  void setSelfIllumination(glm::f32vec3 p_color);
+  glm::f32vec3 getSelfIllumination() const;
+
   virtual void advance(glm::u64 p_nanos, Object * p_object);
   virtual void computeAabb();
   AABB const & getAabb() const;

@@ -83,6 +83,7 @@ void GenericRenderer::setShader(Shader * p_shader)
     }
   }*/
   m_modelVb.id = Shader::eModel;
+  m_selfIlluminationVb.id = Shader::eSelfIlluminationColor;
   m_shader = p_shader;
 }
 
@@ -105,6 +106,7 @@ void GenericRenderer::prepareRenderData(std::vector<Object*> p_objects, GameStat
   {
     iter->second->components.clear();
     iter->second->models.clear();
+    iter->second->selfIlluminationColors.clear();
   }
 
   Asset * currentAsset = nullptr;
@@ -140,6 +142,7 @@ void GenericRenderer::prepareRenderData(std::vector<Object*> p_objects, GameStat
         }
         iter->second->components.push_back(component);
         iter->second->models.push_back(component->getModel());
+        iter->second->selfIlluminationColors.push_back(component->getSelfIllumination());
       }
     }
   }
@@ -188,6 +191,11 @@ void GenericRenderer::render()
       glVertexAttribPointer(m_modelVb.id + i, 4, GL_FLOAT, GL_FALSE, sizeof(iter->second->models[0]), (const GLvoid*) (sizeof(GLfloat) * i * 4));
       glVertexAttribDivisor(m_modelVb.id + i, 1);
     }
+    glBindBuffer(GL_ARRAY_BUFFER, m_buffers[GenericRenderer::eSelfIllumination_Vb]);
+    glBufferData(GL_ARRAY_BUFFER, iter->second->selfIlluminationColors.size() * sizeof(iter->second->selfIlluminationColors[0]), iter->second->selfIlluminationColors.data(), GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(m_selfIlluminationVb.id);
+    glVertexAttribPointer(m_selfIlluminationVb.id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribDivisor(m_selfIlluminationVb.id, 1);
 
     glDrawElementsInstancedBaseVertex(GL_TRIANGLES,
                                       iter->second->asset->getMesh()->getDrawCount(),
@@ -202,6 +210,8 @@ void GenericRenderer::render()
       glDisableVertexAttribArray(m_modelVb.id + i);
     }
     iter->second->asset->unbind();
+    glBindBuffer(GL_ARRAY_BUFFER, m_buffers[GenericRenderer::eSelfIllumination_Vb]);
+    glDisableVertexAttribArray(m_selfIlluminationVb.id);
   }
   m_shader->unbind();
 }

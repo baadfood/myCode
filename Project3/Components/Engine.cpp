@@ -46,6 +46,12 @@ void Engine::applyImpulse(glm::u64 p_nanos)
     thrust = std::min(static_cast<glm::f64>(p_nanos) / 1e9 * d->thrust, d->orderedImpulse);
     d->orderedImpulse -= thrust;
   }
+
+  glm::f32vec3 engineColor(1.0, 1.0, 1.0);
+
+  engineColor *= (thrust / ((double(p_nanos) / 1e9))) / d->thrust;
+
+  setSelfIllumination(engineColor);
   
   glm::f64vec2 impulseScalar(0, thrust);
   
@@ -75,5 +81,5 @@ void Engine::setImpulse(glm::u64 p_impulse)
 
 void Engine::updateLogic(glm::u64 p_nanos)
 {
-Component::updateLogic(p_nanos);
+  Component::updateLogic(p_nanos);
 }

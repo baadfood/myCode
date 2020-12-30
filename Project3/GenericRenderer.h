@@ -18,6 +18,7 @@ public:
   enum EBuffers
   {
     eModel_Vb,
+    eSelfIllumination_Vb,
     eNumOfBuffers
   };
 
@@ -36,6 +37,7 @@ public:
     Asset * asset;
     std::vector<glm::mat4> models;
     std::vector<Component*> components;
+    std::vector<glm::f32vec3> selfIlluminationColors;
   };
 
 protected:
@@ -62,6 +64,7 @@ private:
   GLuint m_vao;
   GLuint m_buffers[eNumOfBuffers];
   Shader::Attribute m_modelVb;
+  Shader::Attribute m_selfIlluminationVb;
   Shader * m_shader;
   CameraWorldBased * m_camera;
   std::unordered_map<Asset *, std::shared_ptr<RenderBatch> > m_renderBatches;
