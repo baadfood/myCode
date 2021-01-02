@@ -1,6 +1,11 @@
 #include <iostream>
-#include <GL/glew.h>
-#include <GL/gl.h>
+#ifdef __APPLE__
+  #include <OpenGL/gl.h>
+  #include <OpenGL/glext.h>
+#else
+  #include <GL/glew.h>
+  #include <GL/gl.h>
+#endif
 #include "Display.h"
 #include "Shader.h"
 #include "Mesh.h"
@@ -34,7 +39,7 @@
 #include <SDL.h>
 
 #include <fstream>
-#include <AI\FlyByWireAi.h>
+#include "AI/FlyByWireAi.h"
 
 double fRand(double fMin, double fMax)
 {

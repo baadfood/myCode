@@ -6,7 +6,11 @@
 #include "obj_loader.h"
 #include "Object.h"
 
-#include <GL/glew.h>
+#ifdef __APPLE__
+  #include <OpenGL/glext.h>
+#else
+  #include <GL/glew.h>
+#endif
 class Shader;
 
 class Mesh

@@ -2,8 +2,11 @@
 #define Shader_h_
 
 #include <string>
-#include <GL/glew.h>
-
+#ifdef __APPLE__
+  #include <OpenGL/glext.h>
+#else
+  #include <GL/glew.h>
+#endif
 #include "Transform.h"
 
 class CameraBase;

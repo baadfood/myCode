@@ -3,7 +3,11 @@
 #include <iostream>
 
 #include <SDL.h>
-#include <GL/glew.h>
+#ifdef __APPLE__
+  #include <OpenGL/gl.h>
+#else
+  #include <GL/glew.h>
+#endif
 #include "CameraBase.h"
 
 #include "GameState.h"
@@ -44,12 +48,12 @@ Display::Display(int p_width, int p_height, std::string const & p_title)
   d->window = SDL_CreateWindow(p_title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, p_width, p_height, SDL_WINDOW_OPENGL);
   d->glContext = SDL_GL_CreateContext(d->window);
 
-  GLenum status = glewInit();
+  // GLenum status = glewInit();
 
-  if (status != GLEW_OK)
-  {
-    std::cerr << "GLEW failed to initialize\n";
-  }
+  // if (status != GLEW_OK)
+  // {
+  //   std::cerr << "GLEW failed to initialize\n";
+  // }
   SDL_GL_SetSwapInterval(0);
 
   glEnable(GL_BLEND);

@@ -8,6 +8,12 @@
 #include "Asset.h"
 #include "Components/Component.h"
 
+#ifdef __APPLE__
+  #include <OpenGL/gl.h>
+  #include <OpenGL/glext.h>
+  #define glVertexAttribDivisor glVertexAttribDivisorARB
+#endif
+
 #include <memory>
 
 namespace mika
