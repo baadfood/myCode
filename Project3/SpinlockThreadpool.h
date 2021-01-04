@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <vector>
 #include <future>
 #include <boost/lockfree/queue.hpp>
 #include "Spinlock.h"

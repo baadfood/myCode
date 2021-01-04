@@ -3,7 +3,11 @@
 #include <fstream>
 #include <iostream>
 
-#include <GL/glew.h>
+#ifdef __APPLE__
+  #include <OpenGL/gl.h>
+#else
+  #include <GL/glew.h>
+#endif
 
 #include "CameraBase.h"
 

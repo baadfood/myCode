@@ -4,8 +4,11 @@
 #include "Shader.h"
 
 #include <string>
-#include <GL/glew.h>
-
+#ifdef __APPLE__
+  #include <OpenGL/glext.h>
+#else
+  #include <GL/glew.h>
+#endif
 #include "Object.h"
 
 #include "LightSource.h"

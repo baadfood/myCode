@@ -1,6 +1,10 @@
 #include "Texture.h"
 
-#include <GL/glew.h>
+#ifdef __APPLE__
+  #include <OpenGL/gl.h>
+#else
+  #include <GL/glew.h>
+#endif
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -62,7 +66,7 @@ void Texture::bind(unsigned int p_unit)
   GLenum errorCode = glGetError();
   if(errorCode)
   {
-    std::cout << "gl error while binding texture\n";
+    std::cout << "gl error while binding texture " << errorCode << std::endl;
   }
 }
 

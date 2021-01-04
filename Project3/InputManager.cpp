@@ -63,7 +63,8 @@ void InputManager::advance(GameState * p_state)
 
 void InputManager::handleEvent(SDL_Event * p_event, GameState * p_state)
 {
-  Event event(*p_event, glm::i64vec2(0, 0));
+  glm::i64vec2 vec(0, 0);
+  Event event(*p_event, vec);
   for(auto iter = p_state->displays.begin();
   iter != p_state->displays.end();
     iter++)

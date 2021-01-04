@@ -1,6 +1,10 @@
 #include "Mesh.h"
 
-#include <GL/glew.h>
+#ifdef __APPLE__
+  #include <OpenGL/gl.h>
+#else
+  #include <GL/glew.h>
+#endif
 #include "Vertex.h"
 #include <iostream>
 
